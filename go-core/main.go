@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/ollama/ollama/api"
 )
 
 type AnalysisResult struct {
@@ -62,28 +65,58 @@ func analyze(filePath string) AnalysisResult {
 		return result
 	}
 
-	// Simulated Policy Sync: Check for local fennec.yaml
+	code := string(content)
+
+	// Simulated Policy Sync
 	policySeverity := "warning"
 	if _, err := os.Stat("fennec.yaml"); err == nil {
-		// In a real implementation, we'd parse the YAML
-		policySeverity = "block" // Simulated "Hard Enforce" from cloud policy
+		policySeverity = "block"
 	}
 
-	code := string(content)
 	analyzePatterns(code, &result, policySeverity)
 
-	// Simulated "AI Semantic Analysis"
-	if strings.Contains(code, "function") {
-		result.AIInsights = append(result.AIInsights, "Refactor Insight: Consider extracting logic into a separate utility for better testability.")
-	}
-	if strings.Contains(code, "eval") {
-		result.AIInsights = append(result.AIInsights, "Security Fix: Replace 'eval()' with a safer JSON.parse() or a mapped function lookup.")
-	}
-	if strings.Contains(code, "API_KEY") {
-		result.AIInsights = append(result.AIInsights, "Organization Policy: Move hardcoded secrets to an encrypted .env file or Vault.")
+	// Integration with Local Ollama
+	if len(result.Findings) > 0 {
+		insight := getAIInsight(code, result.Findings)
+		if insight != "" {
+			result.AIInsights = append(result.AIInsights, insight)
+		}
 	}
 
 	return result
+}
+
+func getAIInsight(code string, findings []Finding) string {
+	client, err := api.ClientFromEnvironment()
+	if err != nil {
+		return "AI Insight Unavailable: Could not connect to Ollama."
+	}
+
+	ctx := context.Background()
+
+	prompt := fmt.Sprintf("Analyze the following code snippet and findings. Provide a single, concise expert recommendation for the developer.\n\nCode:\n%s\n\nFindings:\n", code)
+	for _, f := range findings {
+		prompt += fmt.Sprintf("- %s: %s (Line %d)\n", f.Type, f.Message, f.Line)
+	}
+
+	req := &api.GenerateRequest{
+		Model:  "llama3", // Default to llama3, can be configured
+		Prompt: prompt,
+		Stream: nil, // We want the full response
+	}
+
+	var aiResponse string
+	respFunc := func(resp api.GenerateResponse) error {
+		aiResponse = resp.Response
+		return nil
+	}
+
+	err = client.Generate(ctx, req, respFunc)
+	if err != nil {
+		return fmt.Sprintf("AI Insight Unavailable: Ensure Ollama is running with 'llama3' model (%v)", err)
+	}
+
+	return aiResponse
 }
 
 func analyzePatterns(content string, result *AnalysisResult, defaultSeverity string) {
@@ -103,7 +136,7 @@ func analyzePatterns(content string, result *AnalysisResult, defaultSeverity str
 				result.Findings = append(result.Findings, Finding{
 					Type:     "security",
 					Message:  "Potential hardcoded secret or sensitive key detected.",
-					Severity: defaultSeverity, // Enforced by policy
+					Severity: defaultSeverity,
 					Line:     i + 1,
 				})
 			}

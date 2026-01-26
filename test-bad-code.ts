@@ -1,5 +1,5 @@
 // This is a test file for Fennec
-const API_KEY = "sk-1234567890abcdef1234567890abcdef"; // Should be blocked
+const API_KEY = "sk-1234567890abcdef1234567890abcdefguyy"; // Should be blocked
 
 function unsafe() {
     eval("console.log('dangerous')"); // Should be blocked
