@@ -1,0 +1,27 @@
+{
+  "name": "fennec",
+  "version": "0.1.0",
+  "description": "Intelligent, Unbreakable Code Policy Enforcement",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "fennec": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node --loader ts-node/esm src/index.ts",
+    "dev": "node --loader ts-node/esm src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "execa": "^8.0.1"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^3.5.1",
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

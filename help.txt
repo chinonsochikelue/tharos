@@ -1,0 +1,40 @@
+Build the NAPI-RS project
+
+[1m$ [22mnapi build ...
+
+[1mÔöüÔöüÔöü Options ÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöüÔöü[38;5;256mÔöü[38;5;255mÔöü[38;5;254mÔöü[38;5;253mÔöü[38;5;252mÔöü[38;5;251mÔöü[38;5;250mÔöü[38;5;249mÔöü[38;5;248mÔöü[38;5;247mÔöü[38;5;246mÔöü[38;5;245mÔöü[38;5;244mÔöü[38;5;243mÔöü[38;5;242mÔöü[38;5;241mÔöü[38;5;240mÔöü[38;5;239mÔöü[38;5;238mÔöü[38;5;237mÔöü[38;5;236mÔöü[38;5;235mÔöü[38;5;234mÔöü[38;5;233mÔöü[0m
+
+  [1m--target,-t #0        [22m    Build for the target triple, bypassed to [36m`cargo build --target`[39m
+  [1m--cwd #0              [22m    The working directory of where napi command will be executed in, all other paths options are relative to this path
+  [1m--manifest-path #0    [22m    Path to [36m`Cargo.toml`[39m
+  [1m--config-path,-c #0   [22m    Path to [36m`napi`[39m config json file
+  [1m--package-json-path #0[22m    Path to [36m`package.json`[39m
+  [1m--target-dir #0       [22m    Directory for all crate generated artifacts, see [36m`cargo build --target-dir`[39m
+  [1m--output-dir,-o #0    [22m    Path to where all the built files would be put. Default to the crate folder
+  [1m--platform            [22m    Add platform triple to the generated nodejs binding file, eg: [36m`[name].linux-x64-gnu.node`[39m
+  [1m--js-package-name #0  [22m    Package name in generated js binding file. Only works with [36m`--platform`[39m flag
+  [1m--const-enum          [22m    Whether generate const enum for typescript bindings
+  [1m--js #0               [22m    Path and filename of generated JS binding file. Only works with [36m`--platform`[39m flag. Relative to [36m`--output-dir`[39m.
+  [1m--no-js               [22m    Whether to disable the generation JS binding file. Only works with [36m`--platform`[39m flag.
+  [1m--dts #0              [22m    Path and filename of generated type def file. Relative to [36m`--output-dir`[39m
+  [1m--dts-header #0       [22m    Custom file header for generated type def file. Only works when [36m`typedef`[39m feature enabled.
+  [1m--no-dts-header       [22m    Whether to disable the default file header for generated type def file. Only works when [36m`typedef`[39m feature enabled.
+  [1m--dts-cache           [22m    Whether to enable the dts cache, default to true
+  [1m--esm                 [22m    Whether to emit an ESM JS binding file instead of CJS format. Only works with [36m`--platform`[39m flag.
+  [1m--strip,-s            [22m    Whether strip the library to achieve the minimum file size
+  [1m--release,-r          [22m    Build in release mode
+  [1m--verbose,-v          [22m    Verbosely log build command trace
+  [1m--bin #0              [22m    Build only the specified binary
+  [1m--package,-p #0       [22m    Build the specified library or the one at cwd
+  [1m--profile #0          [22m    Build artifacts with the specified profile
+  [1m--cross-compile,-x    [22m    [experimental] cross-compile for the specified target with [36m`cargo-xwin`[39m on windows and [36m`cargo-zigbuild`[39m on other platform
+  [1m--use-cross           [22m    [experimental] use [cross](https://github.com/cross-rs/cross) instead of [36m`cargo`[39m
+  [1m--use-napi-cross      [22m    [experimental] use @napi-rs/cross-toolchain to cross-compile Linux arm/arm64/x64 gnu targets.
+  [1m--watch,-w            [22m    watch the crate changes and build continuously with [36m`cargo-watch`[39m crates
+  [1m--features,-F #0      [22m    Space-separated list of features to activate
+  [1m--all-features        [22m    Activate all available features
+  [1m--no-default-features [22m    Do not activate the [36m`default`[39m feature
+  [1m--pipe #0             [22m    Pipe all outputs file to given command. e.g. [36m`napi build --pipe "npx prettier --write"`[39m
+
+
+git add test-bad-code.ts; npm run build; node dist/index.js check
