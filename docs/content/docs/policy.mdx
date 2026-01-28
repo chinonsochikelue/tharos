@@ -1,0 +1,61 @@
+---
+title: Policy Configuration
+description: Define and enforce organizational code policies
+---
+
+Tharos allows organizations to define centralized policies that are enforced across all developer machines.
+
+## Policy Schema
+
+Policies are defined using JSON or YAML. A typical policy file includes rules for AI scoring, allowed dependencies, and style guidelines.
+
+```json
+{
+  "name": "enterprise-standard",
+  "version": "1.2.0",
+  "rules": {
+    "no-hardcoded-secrets": {
+      "level": "block",
+      "ai_scoring": true
+    },
+    "max-complexity": {
+      "level": "warn",
+      "threshold": 20
+    },
+    "enforce-naming": {
+      "level": "block",
+      "pattern": "camelCase"
+    }
+  }
+}
+```
+
+## Enforcement Levels
+
+*   **Block**: The commit is rejected if the rule is violated.
+*   **Warn**: The developer receives a warning but can proceed.
+*   **Audit**: The violation is logged to the cloud dashboard but no feedback is given to the developer.
+
+## Syncing to the Cloud
+
+To link your repository to a cloud policy provider, add the provider URL to your `.tharos.json`:
+
+```json
+{
+  "policy_provider": "https://api.tharos.io/v1/policies/my-org"
+}
+```
+
+Once configured, `tharos sync` will automatically fetch and verify the latest policy definitions.
+
+## Custom AI Rules
+
+You can define custom prompts for the AI layer to check for specific organizational architectural patterns.
+
+```javascript
+// .tharos/rules/custom-ai.js
+module.exports = {
+  prompt: "Ensure that all API endpoints use our internal tracing library.",
+  severity: "block"
+};
+```

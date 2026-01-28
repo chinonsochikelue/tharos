@@ -1,0 +1,187 @@
+# SOC 2 Type II Compliance Policy
+# Based on AICPA Trust Services Criteria
+# Focus on Security, Availability, Processing Integrity, Confidentiality, and Privacy
+
+name: "SOC 2 Type II Compliance"
+version: "1.0.0"
+description: "Security controls aligned with SOC 2 Trust Services Criteria"
+
+default_severity: "block"
+
+# CC6.1 - Logical and Physical Access Controls
+access_control:
+  enabled: true
+  rules:
+    - pattern: "(?i)(password|secret|key).*=.*['\"].*['\"]"
+      message: "SOC2-CC6.1: Hardcoded credentials violate access control requirements"
+      severity: "block"
+      compliance_ref: "CC6.1"
+    
+    - pattern: "(?i)admin.*bypass|skip.*auth"
+      message: "SOC2-CC6.1: Authentication bypass detected"
+      severity: "block"
+      compliance_ref: "CC6.1"
+    
+    - pattern: "chmod\\s+777|permissions.*all"
+      message: "SOC2-CC6.1: Overly permissive file permissions"
+      severity: "block"
+      compliance_ref: "CC6.1"
+
+# CC6.6 - Logical and Physical Access Controls - Encryption
+encryption:
+  enabled: true
+  rules:
+    - pattern: "http://(?!localhost)"
+      message: "SOC2-CC6.6: Unencrypted HTTP connection. Use HTTPS for data in transit"
+      severity: "block"
+      compliance_ref: "CC6.6"
+    
+    - pattern: "(?i)(md5|sha1)\\("
+      message: "SOC2-CC6.6: Weak cryptographic algorithm. Use SHA-256 or better"
+      severity: "block"
+      compliance_ref: "CC6.6"
+    
+    - pattern: "ssl.*verify.*false|tls.*verify.*false"
+      message: "SOC2-CC6.6: TLS certificate verification disabled"
+      severity: "block"
+      compliance_ref: "CC6.6"
+
+# CC6.7 - System Operations - Transmission Security
+transmission_security:
+  enabled: true
+  rules:
+    - pattern: "smtp.*port.*25[^0-9]"
+      message: "SOC2-CC6.7: Unencrypted SMTP (port 25). Use port 587 with STARTTLS"
+      severity: "warning"
+      compliance_ref: "CC6.7"
+    
+    - pattern: "ftp://|telnet://"
+      message: "SOC2-CC6.7: Insecure protocol detected. Use SFTP or SSH instead"
+      severity: "block"
+      compliance_ref: "CC6.7"
+
+# CC7.2 - System Monitoring - Detection and Response
+monitoring:
+  enabled: true
+  rules:
+    - pattern: "console\\.log\\(.*(password|token|secret|key).*\\)"
+      message: "SOC2-CC7.2: Sensitive data in logs violates monitoring requirements"
+      severity: "block"
+      compliance_ref: "CC7.2"
+    
+    - pattern: "catch\\s*\\(.*\\)\\s*\\{\\s*\\}"
+      message: "SOC2-CC7.2: Silent error handling prevents proper monitoring"
+      severity: "warning"
+      compliance_ref: "CC7.2"
+    
+    - pattern: "(?i)error.*ignore|suppress.*error"
+      message: "SOC2-CC7.2: Error suppression detected"
+      severity: "warning"
+      compliance_ref: "CC7.2"
+
+# CC7.3 - System Monitoring - Evaluation and Management
+incident_response:
+  enabled: true
+  rules:
+    - pattern: "TODO.*security|FIXME.*security|HACK.*security"
+      message: "SOC2-CC7.3: Unresolved security issue found"
+      severity: "warning"
+      compliance_ref: "CC7.3"
+
+# CC8.1 - Change Management
+change_management:
+  enabled: true
+  rules:
+    - pattern: "(?i)debug\\s*=\\s*true"
+      message: "SOC2-CC8.1: Debug mode enabled in production code"
+      severity: "block"
+      compliance_ref: "CC8.1"
+    
+    - pattern: "(?i)test.*mode.*true|dev.*mode.*true"
+      message: "SOC2-CC8.1: Development mode enabled in production"
+      severity: "block"
+      compliance_ref: "CC8.1"
+
+# A1.2 - Additional Criteria for Availability
+availability:
+  enabled: true
+  rules:
+    - pattern: "setTimeout\\(.*,\\s*[0-9]{7,}\\)"
+      message: "SOC2-A1.2: Excessive timeout may impact availability"
+      severity: "warning"
+      compliance_ref: "A1.2"
+    
+    - pattern: "while\\s*\\(\\s*true\\s*\\)|for\\s*\\(\\s*;\\s*;\\s*\\)"
+      message: "SOC2-A1.2: Infinite loop may impact availability"
+      severity: "warning"
+      compliance_ref: "A1.2"
+
+# C1.1 - Additional Criteria for Confidentiality
+confidentiality:
+  enabled: true
+  rules:
+    - pattern: "(?i)(ssn|social.*security|credit.*card|cvv)"
+      message: "SOC2-C1.1: Potential PII/sensitive data reference requires encryption"
+      severity: "warning"
+      compliance_ref: "C1.1"
+    
+    - pattern: "localStorage\\.setItem\\(.*password.*\\)|sessionStorage\\.setItem\\(.*password.*\\)"
+      message: "SOC2-C1.1: Storing sensitive data in browser storage"
+      severity: "block"
+      compliance_ref: "C1.1"
+
+# P1.1 - Additional Criteria for Privacy
+privacy:
+  enabled: true
+  rules:
+    - pattern: "(?i)track|analytics|beacon"
+      message: "SOC2-P1.1: User tracking detected. Ensure consent mechanism exists"
+      severity: "info"
+      compliance_ref: "P1.1"
+    
+    - pattern: "(?i)email.*@.*\\.(com|org|net)"
+      message: "SOC2-P1.1: Email address in code may violate privacy requirements"
+      severity: "warning"
+      compliance_ref: "P1.1"
+
+# PI1.4 - Processing Integrity
+data_validation:
+  enabled: true
+  rules:
+    - pattern: "parseInt\\(.*\\)|parseFloat\\(.*\\)"
+      message: "SOC2-PI1.4: Unvalidated numeric input. Add bounds checking"
+      severity: "info"
+      compliance_ref: "PI1.4"
+    
+    - pattern: "JSON\\.parse\\(.*\\)"
+      message: "SOC2-PI1.4: Unvalidated JSON parsing. Add try-catch and schema validation"
+      severity: "warning"
+      compliance_ref: "PI1.4"
+
+# Audit Trail Requirements
+audit_logging:
+  enabled: true
+  rules:
+    - pattern: "(?i)delete.*user|remove.*user|drop.*table"
+      message: "SOC2-CC7.2: Destructive operation requires audit logging"
+      severity: "warning"
+      compliance_ref: "CC7.2"
+    
+    - pattern: "(?i)update.*role|grant.*permission|revoke.*permission"
+      message: "SOC2-CC6.2: Permission change requires audit logging"
+      severity: "warning"
+      compliance_ref: "CC6.2"
+
+# Session Management
+session_security:
+  enabled: true
+  rules:
+    - pattern: "(?i)session.*timeout.*=.*[0-9]{7,}"
+      message: "SOC2-CC6.1: Excessive session timeout (> 1 day)"
+      severity: "warning"
+      compliance_ref: "CC6.1"
+    
+    - pattern: "(?i)remember.*me.*true|auto.*login.*true"
+      message: "SOC2-CC6.1: Persistent authentication may violate access control policy"
+      severity: "info"
+      compliance_ref: "CC6.1"

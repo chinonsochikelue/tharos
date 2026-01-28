@@ -1,11 +1,29 @@
 {
-  "name": "fennec",
+  "name": "@collabchron/tharos",
   "version": "0.1.0",
-  "description": "Intelligent, Unbreakable Code Policy Enforcement",
+  "description": "Tharos: Intelligent, Unbreakable Code Policy Enforcement",
+  "keywords": [
+    "security",
+    "linter",
+    "analysis",
+    "policy",
+    "tharos"
+  ],
+  "author": "Chinonso Chikelue <chinonsoneft@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chinonsochikelue/tharos"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "fennec": "dist/index.js"
+    "tharos": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",

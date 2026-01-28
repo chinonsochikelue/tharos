@@ -1,0 +1,45 @@
+name: Tharos Policy Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  tharos-scan:
+    name: Tharos Semantic Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Tharos
+        run: npm install -g .
+
+      - name: Run Tharos Sync
+        run: tharos sync
+        env:
+          THAROS_API_KEY: ${{ secrets.THAROS_API_KEY }}
+
+      - name: Run Policy Check
+        run: tharos check --ci
+        id: tharos-check
+
+      - name: Report Status
+        if: always()
+        run: |
+          if [ "${{ steps.tharos-check.outcome }}" == "success" ]; then
+            echo "✅ Tharos verification passed."
+          else
+            echo "❌ Tharos verification failed. Check the logs for semantic or security violations."
+            exit 1
+          fi

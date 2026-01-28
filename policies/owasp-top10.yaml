@@ -1,0 +1,175 @@
+# OWASP Top 10 Security Policy
+# Based on OWASP Top 10 2021
+# https://owasp.org/Top10/
+
+name: "OWASP Top 10 2021"
+version: "1.0.0"
+description: "Comprehensive security policy based on OWASP Top 10 most critical web application security risks"
+
+# Default severity for all rules
+default_severity: "block"
+
+# A01:2021 – Broken Access Control
+access_control:
+  enabled: true
+  rules:
+    - pattern: "(?i)(admin|root|superuser)\\s*=\\s*true"
+      message: "Hardcoded privilege escalation detected"
+      severity: "block"
+    
+    - pattern: "(?i)bypass.*auth"
+      message: "Potential authentication bypass detected"
+      severity: "block"
+
+# A02:2021 – Cryptographic Failures
+cryptography:
+  enabled: true
+  rules:
+    - pattern: "(?i)(md5|sha1)\\("
+      message: "Weak cryptographic hash function detected. Use SHA-256 or better"
+      severity: "block"
+    
+    - pattern: "(?i)des|3des|rc4"
+      message: "Weak encryption algorithm detected. Use AES-256 or better"
+      severity: "block"
+    
+    - pattern: "Math\\.random\\(\\)"
+      message: "Insecure random number generator. Use crypto.randomBytes() instead"
+      severity: "warning"
+
+# A03:2021 – Injection
+injection:
+  enabled: true
+  rules:
+    - pattern: "eval\\("
+      message: "Code injection vulnerability: eval() detected"
+      severity: "block"
+    
+    - pattern: "exec\\(|system\\(|shell_exec\\("
+      message: "Command injection risk: Direct command execution detected"
+      severity: "block"
+    
+    - pattern: "innerHTML\\s*="
+      message: "XSS vulnerability: innerHTML assignment detected. Use textContent instead"
+      severity: "warning"
+    
+    - pattern: "\\$\\{.*\\}.*sql|sql.*\\$\\{.*\\}"
+      message: "SQL injection risk: String interpolation in SQL query"
+      severity: "block"
+
+# A04:2021 – Insecure Design
+insecure_design:
+  enabled: true
+  rules:
+    - pattern: "(?i)password.*=.*['\"].*['\"]"
+      message: "Hardcoded password detected"
+      severity: "block"
+    
+    - pattern: "(?i)(api[_-]?key|secret|token).*=.*['\"][a-zA-Z0-9_-]{20,}['\"]"
+      message: "Hardcoded API key or secret detected"
+      severity: "block"
+
+# A05:2021 – Security Misconfiguration
+misconfiguration:
+  enabled: true
+  rules:
+    - pattern: "(?i)debug\\s*=\\s*true"
+      message: "Debug mode enabled in production code"
+      severity: "warning"
+    
+    - pattern: "(?i)cors.*origin.*\\*"
+      message: "Overly permissive CORS policy detected"
+      severity: "warning"
+    
+    - pattern: "(?i)ssl.*verify.*false"
+      message: "SSL certificate verification disabled"
+      severity: "block"
+
+# A06:2021 – Vulnerable and Outdated Components
+dependencies:
+  enabled: true
+  rules:
+    - pattern: "require\\(['\"].*\\.\\.\\/.*['\"]\\)"
+      message: "Relative path in require() may indicate dependency confusion risk"
+      severity: "warning"
+
+# A07:2021 – Identification and Authentication Failures
+authentication:
+  enabled: true
+  rules:
+    - pattern: "(?i)session.*timeout.*=.*[0-9]{7,}"
+      message: "Excessive session timeout detected (> 1 day)"
+      severity: "warning"
+    
+    - pattern: "(?i)password.*length.*<.*[1-7]"
+      message: "Weak password policy: minimum length too short"
+      severity: "warning"
+
+# A08:2021 – Software and Data Integrity Failures
+integrity:
+  enabled: true
+  rules:
+    - pattern: "http://.*\\.js|http://.*\\.css"
+      message: "Insecure resource loading over HTTP. Use HTTPS"
+      severity: "warning"
+    
+    - pattern: "integrity\\s*="
+      message: "Missing subresource integrity check"
+      severity: "info"
+      invert: true  # Flag when NOT present
+
+# A09:2021 – Security Logging and Monitoring Failures
+logging:
+  enabled: true
+  rules:
+    - pattern: "console\\.log\\(.*password.*\\)"
+      message: "Sensitive data logged to console"
+      severity: "block"
+    
+    - pattern: "console\\.log\\(.*(token|secret|key).*\\)"
+      message: "Potential credential leakage in logs"
+      severity: "warning"
+
+# A10:2021 – Server-Side Request Forgery (SSRF)
+ssrf:
+  enabled: true
+  rules:
+    - pattern: "fetch\\(.*\\$\\{.*\\}.*\\)|axios\\(.*\\$\\{.*\\}.*\\)"
+      message: "SSRF risk: User-controlled URL in HTTP request"
+      severity: "warning"
+    
+    - pattern: "(?i)localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0"
+      message: "Localhost reference may indicate SSRF vulnerability"
+      severity: "info"
+
+# Additional TypeScript/JavaScript specific rules
+javascript_security:
+  enabled: true
+  rules:
+    - pattern: "dangerouslySetInnerHTML"
+      message: "XSS risk: dangerouslySetInnerHTML usage detected"
+      severity: "warning"
+    
+    - pattern: "Function\\(.*\\)"
+      message: "Code injection risk: Function constructor detected"
+      severity: "block"
+    
+    - pattern: "setTimeout\\(['\"].*['\"]"
+      message: "Code injection risk: String argument to setTimeout"
+      severity: "warning"
+    
+    - pattern: "setInterval\\(['\"].*['\"]"
+      message: "Code injection risk: String argument to setInterval"
+      severity: "warning"
+
+# Code quality rules that impact security
+code_quality:
+  enabled: true
+  rules:
+    - pattern: "TODO.*security|FIXME.*security|XXX.*security"
+      message: "Unresolved security-related TODO found"
+      severity: "warning"
+    
+    - pattern: "catch\\s*\\(.*\\)\\s*\\{\\s*\\}"
+      message: "Empty catch block may hide security errors"
+      severity: "warning"

@@ -1,0 +1,21 @@
+­ƒªè Tharos is analyzing your intent...
+
+­ƒôä Analyzing test-bad-code.ts...
+  ÔÜá´©Å SECURITY_WARNING: Identifier 'API_KEY' might contain sensitive data. Ensure it is sourced from environment variables.
+     Line 1
+
+  ­ƒºá Tharos AI Semantic Insights:
+     Ô£¿ Ensure API_KEY is properly secured and sourced from environment variables, consider using a secrets manager to store sensitive data
+     ­ƒôè Risk Score: 80/100
+
+     ­ƒÆí Suggested Fix:
+     ---------------------------------------
+     const apikey = process.env.API_KEY;
+     // Validate if API_KEY is set in environment variables
+     if (!apikey) {
+       throw new Error('API_KEY is not set in environment variables');
+     }
+     // Continue with the rest of the code
+     ---------------------------------------
+
+Ô£¿ Tharos logic check passed! Proceeding...

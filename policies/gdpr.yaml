@@ -1,0 +1,195 @@
+# GDPR Compliance Policy
+# Based on EU General Data Protection Regulation (GDPR)
+# Focus on data protection, privacy, and user rights
+
+name: "GDPR Compliance"
+version: "1.0.0"
+description: "Data protection and privacy controls aligned with GDPR requirements"
+
+default_severity: "block"
+
+# Article 5 - Principles relating to processing of personal data
+data_minimization:
+  enabled: true
+  rules:
+    - pattern: "(?i)(full.*name|first.*name.*last.*name|address|phone|email|dob|birth.*date)"
+      message: "GDPR-Art5: Personal data collection detected. Ensure legal basis and necessity"
+      severity: "info"
+      compliance_ref: "Article 5(1)(c)"
+    
+    - pattern: "(?i)(race|ethnic|political|religion|health|genetic|biometric)"
+      message: "GDPR-Art9: Special category personal data detected. Requires explicit consent"
+      severity: "warning"
+      compliance_ref: "Article 9"
+
+# Article 25 - Data protection by design and by default
+privacy_by_design:
+  enabled: true
+  rules:
+    - pattern: "(?i)default.*public|visibility.*public"
+      message: "GDPR-Art25: Default public visibility may violate privacy by default"
+      severity: "warning"
+      compliance_ref: "Article 25(2)"
+    
+    - pattern: "(?i)opt.*out|unsubscribe.*false"
+      message: "GDPR-Art25: Opt-out mechanism required for privacy by default"
+      severity: "warning"
+      compliance_ref: "Article 25(2)"
+
+# Article 32 - Security of processing
+data_security:
+  enabled: true
+  rules:
+    - pattern: "(?i)(password|secret|key).*=.*['\"].*['\"]"
+      message: "GDPR-Art32: Hardcoded credentials violate security requirements"
+      severity: "block"
+      compliance_ref: "Article 32(1)(a)"
+    
+    - pattern: "http://(?!localhost)"
+      message: "GDPR-Art32: Unencrypted transmission of data. Use HTTPS"
+      severity: "block"
+      compliance_ref: "Article 32(1)(a)"
+    
+    - pattern: "(?i)(md5|sha1)\\("
+      message: "GDPR-Art32: Weak cryptographic algorithm. Use SHA-256 or better"
+      severity: "block"
+      compliance_ref: "Article 32(1)(a)"
+    
+    - pattern: "localStorage\\.setItem|sessionStorage\\.setItem"
+      message: "GDPR-Art32: Browser storage of personal data requires encryption"
+      severity: "warning"
+      compliance_ref: "Article 32(1)(a)"
+
+# Article 17 - Right to erasure ('right to be forgotten')
+data_deletion:
+  enabled: true
+  rules:
+    - pattern: "(?i)delete.*user|remove.*user|erase.*data"
+      message: "GDPR-Art17: Data deletion operation detected. Ensure complete erasure"
+      severity: "info"
+      compliance_ref: "Article 17"
+    
+    - pattern: "(?i)soft.*delete|mark.*deleted"
+      message: "GDPR-Art17: Soft delete may not satisfy right to erasure. Consider hard delete"
+      severity: "warning"
+      compliance_ref: "Article 17"
+
+# Article 20 - Right to data portability
+data_portability:
+  enabled: true
+  rules:
+    - pattern: "(?i)export.*user.*data|download.*data"
+      message: "GDPR-Art20: Data export functionality detected. Ensure machine-readable format"
+      severity: "info"
+      compliance_ref: "Article 20"
+
+# Article 33 - Notification of a personal data breach
+breach_notification:
+  enabled: true
+  rules:
+    - pattern: "console\\.log\\(.*(email|phone|address|ssn|credit.*card).*\\)"
+      message: "GDPR-Art33: Personal data in logs may complicate breach notification"
+      severity: "block"
+      compliance_ref: "Article 33"
+    
+    - pattern: "catch\\s*\\(.*\\)\\s*\\{\\s*\\}"
+      message: "GDPR-Art33: Silent error handling may hide data breaches"
+      severity: "warning"
+      compliance_ref: "Article 33"
+
+# Article 35 - Data protection impact assessment
+high_risk_processing:
+  enabled: true
+  rules:
+    - pattern: "(?i)(profiling|automated.*decision|ai.*model|machine.*learning)"
+      message: "GDPR-Art35: Automated decision-making detected. DPIA may be required"
+      severity: "warning"
+      compliance_ref: "Article 35"
+    
+    - pattern: "(?i)(surveillance|monitor|track.*location|geolocation)"
+      message: "GDPR-Art35: Systematic monitoring detected. DPIA may be required"
+      severity: "warning"
+      compliance_ref: "Article 35"
+
+# Article 44-50 - Transfers of personal data to third countries
+data_transfer:
+  enabled: true
+  rules:
+    - pattern: "(?i)api.*endpoint.*\\.(cn|ru|in)|server.*\\.(cn|ru|in)"
+      message: "GDPR-Art44: Data transfer to third country detected. Ensure adequacy decision"
+      severity: "warning"
+      compliance_ref: "Article 44"
+    
+    - pattern: "(?i)cloud.*region|aws.*region|azure.*region"
+      message: "GDPR-Art44: Cloud region configuration. Ensure EU/EEA region for EU data"
+      severity: "info"
+      compliance_ref: "Article 44"
+
+# Article 6 - Lawfulness of processing
+consent_management:
+  enabled: true
+  rules:
+    - pattern: "(?i)cookie|tracking|analytics"
+      message: "GDPR-Art6: Tracking detected. Ensure valid consent mechanism"
+      severity: "info"
+      compliance_ref: "Article 6(1)(a)"
+    
+    - pattern: "(?i)consent.*default.*true|pre.*checked"
+      message: "GDPR-Art6: Pre-checked consent violates freely given requirement"
+      severity: "block"
+      compliance_ref: "Article 6(1)(a)"
+    
+    - pattern: "(?i)accept.*all.*cookies"
+      message: "GDPR-Art6: Ensure granular consent options available"
+      severity: "warning"
+      compliance_ref: "Article 6(1)(a)"
+
+# Article 15 - Right of access by the data subject
+data_access:
+  enabled: true
+  rules:
+    - pattern: "(?i)user.*profile|account.*details|personal.*info"
+      message: "GDPR-Art15: User data access detected. Ensure comprehensive data export"
+      severity: "info"
+      compliance_ref: "Article 15"
+
+# Article 13-14 - Information to be provided
+transparency:
+  enabled: true
+  rules:
+    - pattern: "(?i)collect.*data|gather.*information"
+      message: "GDPR-Art13: Data collection detected. Ensure privacy notice provided"
+      severity: "info"
+      compliance_ref: "Article 13"
+
+# Article 30 - Records of processing activities
+documentation:
+  enabled: true
+  rules:
+    - pattern: "(?i)process.*personal.*data|handle.*user.*data"
+      message: "GDPR-Art30: Data processing detected. Ensure documented in RoPA"
+      severity: "info"
+      compliance_ref: "Article 30"
+
+# Children's Data Protection (Article 8)
+children_protection:
+  enabled: true
+  rules:
+    - pattern: "(?i)age.*<.*16|age.*<.*13|child|minor"
+      message: "GDPR-Art8: Processing children's data requires parental consent (age < 16)"
+      severity: "warning"
+      compliance_ref: "Article 8"
+
+# Data Retention
+retention:
+  enabled: true
+  rules:
+    - pattern: "(?i)retention.*period|delete.*after|expire.*after"
+      message: "GDPR-Art5: Data retention policy detected. Ensure compliance with necessity"
+      severity: "info"
+      compliance_ref: "Article 5(1)(e)"
+    
+    - pattern: "(?i)permanent|forever|never.*delete"
+      message: "GDPR-Art5: Indefinite data retention violates storage limitation principle"
+      severity: "block"
+      compliance_ref: "Article 5(1)(e)"

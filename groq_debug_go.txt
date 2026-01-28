@@ -1,0 +1,36 @@
+{
+  "file": "..\\test-bad-code.ts",
+  "findings": [
+    {
+      "type": "security",
+      "message": "Potentially sensitive variable name 'API_KEY' found.",
+      "severity": "warning",
+      "line": 2
+    },
+    {
+      "type": "security",
+      "message": "Suspiciously long string literal detected; possible hardcoded token.",
+      "severity": "warning",
+      "line": 2
+    },
+    {
+      "type": "security",
+      "message": "Dangerous function 'eval' detected via AST analysis.",
+      "severity": "block",
+      "line": 5
+    },
+    {
+      "type": "code_smell",
+      "message": "Static analysis found unresolved TODO in comment.",
+      "severity": "warning",
+      "line": 8
+    }
+  ],
+  "ai_insights": [
+    {
+      "recommendation": "Refactor the code to securely manage sensitive data and avoid using potentially hazardous functions. Consider using environment variables for API keys and replacing the eval function with a safer alternative. Additionally, address the TODO comment by refactoring the logic as intended.",
+      "risk_score": 80,
+      "suggested_fix": "Consider replacing the API key with an environment variable and removing the eval function. Example: \nconst apiKey = process.env.API_KEY; \nconsole.log('dangerous'); \n// Refactor the TODO logic \nfunction smells() { \n    // Refactored logic \n    return true; \n}"
+    }
+  ]
+}

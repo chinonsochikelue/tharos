@@ -1,0 +1,200 @@
+# Code Quality Best Practices
+# General code quality, maintainability, and performance guidelines
+
+name: "Code Quality Standards"
+version: "1.0.0"
+description: "Best practices for clean, maintainable, and performant code"
+
+default_severity: "warning"
+
+# Code Smells
+code_smells:
+  enabled: true
+  rules:
+    - pattern: "TODO|FIXME|XXX|HACK"
+      message: "Unresolved technical debt marker found"
+      severity: "info"
+    
+    - pattern: "console\\.log\\(|console\\.debug\\("
+      message: "Debug statement left in code. Remove before production"
+      severity: "warning"
+    
+    - pattern: "debugger;"
+      message: "Debugger statement found. Remove before committing"
+      severity: "warning"
+    
+    - pattern: "catch\\s*\\(.*\\)\\s*\\{\\s*\\}"
+      message: "Empty catch block. Add error handling or logging"
+      severity: "warning"
+    
+    - pattern: "if\\s*\\(.*\\)\\s*\\{\\s*\\}\\s*else"
+      message: "Empty if block. Consider refactoring"
+      severity: "info"
+
+# Complexity
+complexity:
+  enabled: true
+  rules:
+    - pattern: "if.*if.*if.*if.*if"
+      message: "Deeply nested conditionals. Consider refactoring"
+      severity: "warning"
+    
+    - pattern: "function.*\\{[^}]{1000,}\\}"
+      message: "Large function detected. Consider breaking into smaller functions"
+      severity: "info"
+    
+    - pattern: "class.*\\{[^}]{2000,}\\}"
+      message: "Large class detected. Consider splitting responsibilities"
+      severity: "info"
+
+# Performance Anti-patterns
+performance:
+  enabled: true
+  rules:
+    - pattern: "for.*for.*for"
+      message: "Nested loops detected. Consider optimization"
+      severity: "info"
+    
+    - pattern: "\\.map\\(.*\\)\\.filter\\(.*\\)"
+      message: "Chained map/filter. Consider combining for better performance"
+      severity: "info"
+    
+    - pattern: "while\\s*\\(\\s*true\\s*\\)"
+      message: "Infinite loop detected. Ensure break condition exists"
+      severity: "warning"
+    
+    - pattern: "setInterval\\(.*,\\s*[0-9]{1,2}\\)"
+      message: "Very frequent interval (< 100ms). May impact performance"
+      severity: "warning"
+
+# Best Practices
+best_practices:
+  enabled: true
+  rules:
+    - pattern: "var\\s+"
+      message: "Use 'const' or 'let' instead of 'var'"
+      severity: "info"
+    
+    - pattern: "==|!="
+      message: "Use strict equality (=== or !==) instead of loose equality"
+      severity: "warning"
+    
+    - pattern: "new Date\\(\\)"
+      message: "Consider using Date.now() or specific date constructor"
+      severity: "info"
+    
+    - pattern: "parseInt\\([^,)]*\\)"
+      message: "Always specify radix parameter in parseInt()"
+      severity: "warning"
+
+# TypeScript Specific
+typescript_quality:
+  enabled: true
+  rules:
+    - pattern: "any"
+      message: "Avoid 'any' type. Use specific types or 'unknown'"
+      severity: "warning"
+    
+    - pattern: "@ts-ignore|@ts-nocheck"
+      message: "TypeScript error suppression. Fix the underlying issue"
+      severity: "warning"
+    
+    - pattern: "as\\s+any"
+      message: "Type assertion to 'any'. Consider proper typing"
+      severity: "warning"
+
+# React Specific
+react_quality:
+  enabled: true
+  rules:
+    - pattern: "useEffect\\(.*,\\s*\\[\\]\\)"
+      message: "Empty dependency array in useEffect. Verify intentional"
+      severity: "info"
+    
+    - pattern: "useState\\(.*\\).*useState\\(.*\\).*useState\\(.*\\).*useState\\(.*\\)"
+      message: "Multiple useState calls. Consider useReducer for complex state"
+      severity: "info"
+    
+    - pattern: "key=\\{index\\}"
+      message: "Using array index as key. Use stable identifier instead"
+      severity: "warning"
+
+# Error Handling
+error_handling:
+  enabled: true
+  rules:
+    - pattern: "throw\\s+['\"]"
+      message: "Throwing string instead of Error object"
+      severity: "warning"
+    
+    - pattern: "Promise.*catch\\(\\)"
+      message: "Empty promise catch. Add error handling"
+      severity: "warning"
+    
+    - pattern: "async.*\\{[^}]*\\}"
+      message: "Async function without try-catch. Consider error handling"
+      severity: "info"
+
+# Documentation
+documentation:
+  enabled: true
+  rules:
+    - pattern: "function\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*\\([^)]{50,}\\)"
+      message: "Complex function signature. Add JSDoc documentation"
+      severity: "info"
+    
+    - pattern: "export\\s+class"
+      message: "Exported class. Consider adding JSDoc documentation"
+      severity: "info"
+
+# Naming Conventions
+naming:
+  enabled: true
+  rules:
+    - pattern: "function\\s+[a-z]"
+      message: "Function name should start with lowercase (camelCase)"
+      severity: "info"
+    
+    - pattern: "class\\s+[a-z]"
+      message: "Class name should start with uppercase (PascalCase)"
+      severity: "warning"
+    
+    - pattern: "const\\s+[A-Z_]{2,}\\s*="
+      message: "Constant naming detected. Ensure it's truly a constant"
+      severity: "info"
+
+# Magic Numbers
+magic_numbers:
+  enabled: true
+  rules:
+    - pattern: "\\s[0-9]{3,}\\s"
+      message: "Magic number detected. Consider using named constant"
+      severity: "info"
+    
+    - pattern: "setTimeout\\(.*,\\s*[0-9]{4,}\\)"
+      message: "Large timeout value. Consider using named constant"
+      severity: "info"
+
+# Dead Code
+dead_code:
+  enabled: true
+  rules:
+    - pattern: "if\\s*\\(\\s*false\\s*\\)|if\\s*\\(\\s*0\\s*\\)"
+      message: "Unreachable code detected"
+      severity: "warning"
+    
+    - pattern: "return.*\\n.*return"
+      message: "Unreachable return statement"
+      severity: "warning"
+
+# Comments
+comments:
+  enabled: true
+  rules:
+    - pattern: "//.*TODO.*[0-9]{4}"
+      message: "Old TODO with year. Consider addressing or removing"
+      severity: "info"
+    
+    - pattern: "/\\*[^*]*\\*/"
+      message: "Block comment detected. Consider using line comments for consistency"
+      severity: "info"

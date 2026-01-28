@@ -1,0 +1,227 @@
+# PCI-DSS Compliance Policy
+# Based on Payment Card Industry Data Security Standard v4.0
+# Focus on protecting cardholder data and payment systems
+
+name: "PCI-DSS v4.0"
+version: "1.0.0"
+description: "Payment card security controls aligned with PCI-DSS requirements"
+
+default_severity: "block"
+
+# Requirement 2: Apply Secure Configurations
+secure_configuration:
+  enabled: true
+  rules:
+    - pattern: "(?i)default.*password|admin.*admin|root.*root"
+      message: "PCI-DSS-2.1: Default credentials detected"
+      severity: "block"
+      compliance_ref: "Req 2.1"
+    
+    - pattern: "(?i)debug\\s*=\\s*true|verbose.*true"
+      message: "PCI-DSS-2.2: Debug mode enabled may expose sensitive data"
+      severity: "block"
+      compliance_ref: "Req 2.2"
+
+# Requirement 3: Protect Stored Cardholder Data
+data_protection:
+  enabled: true
+  rules:
+    - pattern: "(?i)(card.*number|pan|cvv|cvc|expir.*date|track.*data)"
+      message: "PCI-DSS-3.2: Cardholder data reference detected. Must be encrypted"
+      severity: "block"
+      compliance_ref: "Req 3.2"
+    
+    - pattern: "[0-9]{13,19}"
+      message: "PCI-DSS-3.3: Potential credit card number detected. Mask or encrypt"
+      severity: "warning"
+      compliance_ref: "Req 3.3"
+    
+    - pattern: "(?i)cvv.*=|cvc.*=|security.*code.*="
+      message: "PCI-DSS-3.2: CVV/CVC storage is prohibited after authorization"
+      severity: "block"
+      compliance_ref: "Req 3.2.1"
+    
+    - pattern: "localStorage\\.setItem.*card|sessionStorage\\.setItem.*card"
+      message: "PCI-DSS-3.2: Storing card data in browser storage is prohibited"
+      severity: "block"
+      compliance_ref: "Req 3.2"
+
+# Requirement 4: Protect Cardholder Data with Strong Cryptography
+encryption:
+  enabled: true
+  rules:
+    - pattern: "http://(?!localhost)"
+      message: "PCI-DSS-4.2: Unencrypted transmission. Use HTTPS/TLS 1.2+"
+      severity: "block"
+      compliance_ref: "Req 4.2"
+    
+    - pattern: "(?i)tls.*1\\.0|tls.*1\\.1|ssl.*v[0-9]"
+      message: "PCI-DSS-4.2: Weak TLS version. Use TLS 1.2 or higher"
+      severity: "block"
+      compliance_ref: "Req 4.2"
+    
+    - pattern: "(?i)(md5|sha1|des|3des|rc4)\\("
+      message: "PCI-DSS-4.2: Weak cryptographic algorithm. Use AES-256 or SHA-256+"
+      severity: "block"
+      compliance_ref: "Req 4.2"
+    
+    - pattern: "ssl.*verify.*false|tls.*verify.*false"
+      message: "PCI-DSS-4.2: Certificate verification disabled"
+      severity: "block"
+      compliance_ref: "Req 4.2"
+
+# Requirement 6: Develop and Maintain Secure Systems
+secure_development:
+  enabled: true
+  rules:
+    - pattern: "eval\\(|Function\\(|setTimeout\\(['\"]|setInterval\\(['\"]"
+      message: "PCI-DSS-6.2: Code injection vulnerability detected"
+      severity: "block"
+      compliance_ref: "Req 6.2.4"
+    
+    - pattern: "innerHTML\\s*=|outerHTML\\s*="
+      message: "PCI-DSS-6.2: XSS vulnerability. Use textContent or sanitize input"
+      severity: "warning"
+      compliance_ref: "Req 6.2.4"
+    
+    - pattern: "\\$\\{.*\\}.*sql|sql.*\\$\\{.*\\}"
+      message: "PCI-DSS-6.2: SQL injection risk detected"
+      severity: "block"
+      compliance_ref: "Req 6.2.4"
+    
+    - pattern: "exec\\(|system\\(|shell_exec\\("
+      message: "PCI-DSS-6.2: Command injection risk detected"
+      severity: "block"
+      compliance_ref: "Req 6.2.4"
+
+# Requirement 7: Restrict Access to System Components
+access_control:
+  enabled: true
+  rules:
+    - pattern: "(?i)(password|secret|key|token).*=.*['\"].*['\"]"
+      message: "PCI-DSS-7.1: Hardcoded credentials violate access control"
+      severity: "block"
+      compliance_ref: "Req 7.1"
+    
+    - pattern: "chmod\\s+777|permissions.*all"
+      message: "PCI-DSS-7.1: Overly permissive access rights"
+      severity: "block"
+      compliance_ref: "Req 7.1"
+    
+    - pattern: "(?i)admin.*bypass|skip.*auth|disable.*auth"
+      message: "PCI-DSS-7.2: Authentication bypass detected"
+      severity: "block"
+      compliance_ref: "Req 7.2"
+
+# Requirement 8: Identify Users and Authenticate Access
+authentication:
+  enabled: true
+  rules:
+    - pattern: "(?i)password.*length.*<.*8"
+      message: "PCI-DSS-8.3: Password must be minimum 8 characters (12+ recommended)"
+      severity: "block"
+      compliance_ref: "Req 8.3.6"
+    
+    - pattern: "(?i)session.*timeout.*=.*[0-9]{7,}"
+      message: "PCI-DSS-8.2: Excessive session timeout (max 15 minutes for payment pages)"
+      severity: "warning"
+      compliance_ref: "Req 8.2.8"
+    
+    - pattern: "Math\\.random\\(\\)"
+      message: "PCI-DSS-8.3: Insecure random number generator. Use crypto.randomBytes()"
+      severity: "warning"
+      compliance_ref: "Req 8.3"
+    
+    - pattern: "(?i)mfa.*false|two.*factor.*false|2fa.*false"
+      message: "PCI-DSS-8.4: Multi-factor authentication should be enabled"
+      severity: "warning"
+      compliance_ref: "Req 8.4"
+
+# Requirement 10: Log and Monitor All Access
+logging_monitoring:
+  enabled: true
+  rules:
+    - pattern: "console\\.log\\(.*(card|cvv|pan|password|pin).*\\)"
+      message: "PCI-DSS-10.3: Sensitive authentication data in logs is prohibited"
+      severity: "block"
+      compliance_ref: "Req 10.3"
+    
+    - pattern: "catch\\s*\\(.*\\)\\s*\\{\\s*\\}"
+      message: "PCI-DSS-10.2: Silent error handling prevents audit logging"
+      severity: "warning"
+      compliance_ref: "Req 10.2"
+    
+    - pattern: "(?i)log.*disable|logging.*false"
+      message: "PCI-DSS-10.2: Logging disabled violates audit requirements"
+      severity: "block"
+      compliance_ref: "Req 10.2"
+
+# Requirement 11: Test Security of Systems and Networks
+security_testing:
+  enabled: true
+  rules:
+    - pattern: "(?i)test.*mode.*true|sandbox.*false"
+      message: "PCI-DSS-11.3: Production mode verification required"
+      severity: "warning"
+      compliance_ref: "Req 11.3"
+    
+    - pattern: "TODO.*security|FIXME.*security|XXX.*security"
+      message: "PCI-DSS-6.3: Unresolved security issues found"
+      severity: "warning"
+      compliance_ref: "Req 6.3"
+
+# Requirement 12: Support Information Security
+security_policy:
+  enabled: true
+  rules:
+    - pattern: "(?i)pci.*scope|cardholder.*data.*environment"
+      message: "PCI-DSS-12.1: CDE reference detected. Ensure proper segmentation"
+      severity: "info"
+      compliance_ref: "Req 12.1"
+
+# Payment Processing Specific
+payment_security:
+  enabled: true
+  rules:
+    - pattern: "(?i)stripe|paypal|square|braintree"
+      message: "PCI-DSS-3.2: Using payment processor. Ensure PCI-compliant integration"
+      severity: "info"
+      compliance_ref: "Req 3.2"
+    
+    - pattern: "(?i)tokenize|token.*service"
+      message: "PCI-DSS-3.2: Tokenization detected. Verify secure implementation"
+      severity: "info"
+      compliance_ref: "Req 3.2"
+    
+    - pattern: "(?i)payment.*gateway|merchant.*account"
+      message: "PCI-DSS-12.8: Third-party payment service. Ensure PCI-DSS compliance"
+      severity: "info"
+      compliance_ref: "Req 12.8"
+
+# Data Retention
+data_retention:
+  enabled: true
+  rules:
+    - pattern: "(?i)retain.*card.*data|store.*card.*data"
+      message: "PCI-DSS-3.1: Card data retention requires business justification"
+      severity: "warning"
+      compliance_ref: "Req 3.1"
+    
+    - pattern: "(?i)permanent.*storage|never.*delete.*card"
+      message: "PCI-DSS-3.1: Indefinite card data storage is prohibited"
+      severity: "block"
+      compliance_ref: "Req 3.1"
+
+# Network Security
+network_security:
+  enabled: true
+  rules:
+    - pattern: "(?i)cors.*origin.*\\*"
+      message: "PCI-DSS-6.4: Overly permissive CORS policy"
+      severity: "warning"
+      compliance_ref: "Req 6.4.3"
+    
+    - pattern: "(?i)firewall.*disable|iptables.*flush"
+      message: "PCI-DSS-1.2: Firewall configuration change detected"
+      severity: "block"
+      compliance_ref: "Req 1.2"

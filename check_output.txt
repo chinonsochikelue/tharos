@@ -1,0 +1,16 @@
+🦊 Tharos is analyzing your intent...
+
+📄 Analyzing test-bad-code.ts...
+  🛑 SECURITY: Potentially sensitive variable name 'API_KEY' found.
+     Line 2
+  🛑 SECURITY: Suspiciously long string literal detected; possible hardcoded token.
+     Line 2
+  🛑 SECURITY: Dangerous function 'eval' detected via AST analysis.
+     Line 5
+  ⚠️ CODE_SMELL: Static analysis found unresolved TODO in comment.
+     Line 8
+
+  🧠 Tharos AI Semantic Insights:
+     ✨ AI Insight Unavailable: (Post "http://127.0.0.1:11434/api/generate": dial tcp 127.0.0.1:11434: connectex: No connection could be made because the target machine actively refused it.)
+
+🛑 Commit blocked by Tharos policy. Please fix the issues above.

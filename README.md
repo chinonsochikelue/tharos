@@ -1,0 +1,346 @@
+# 🦊 Tharos
+
+**AI-Powered Security & Quality Analysis for Modern Development**
+
+Tharos is a comprehensive security analysis tool that combines static code analysis with AI-powered semantic insights to catch security vulnerabilities, enforce compliance standards, and improve code quality before they reach production.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![Go](https://img.shields.io/badge/Go-1.21-00ADD8)](https://golang.org/)
+
+## ✨ Features
+
+### 🔒 Multi-Layer Security Analysis
+- **AST-Based Detection**: Fast, accurate pattern matching for common vulnerabilities
+- **AI Semantic Analysis**: Deep understanding of code context and intent
+- **Risk Scoring**: Automated 0-100 risk assessment for every finding
+- **Suggested Fixes**: AI-generated code snippets to resolve issues
+
+### 🌍 Multi-Language Support
+- TypeScript & JavaScript (including React)
+- Python
+- Go
+- Rust
+- Java
+- *More languages coming soon*
+
+### 🎯 Compliance Frameworks
+Pre-built policies for industry standards:
+- **OWASP Top 10 2021** - Web application security risks
+- **SOC 2 Type II** - Trust Services Criteria
+- **GDPR** - EU data protection compliance
+- **PCI-DSS v4.0** - Payment card security
+- **Code Quality** - Best practices and maintainability
+
+### 🚀 Multiple Integration Points
+
+#### 1. CLI Tool
+```bash
+# Initialize in your project
+tharos init
+
+# Check files before commit
+tharos check
+
+# Analyze specific file
+tharos analyze src/auth.ts
+```
+
+#### 2. Git Hooks
+Automatic pre-commit and pre-push validation with self-healing hooks
+
+#### 3. VSCode Extension
+Real-time feedback as you code:
+- Red squiggles under security issues
+- AI insights on hover
+- Quick fixes via lightbulb menu
+- Status bar integration
+
+#### 4. GitHub Actions
+```yaml
+- uses: actions/checkout@v3
+- name: Tharos Security Check
+  run: |
+    npm install -g tharos
+    tharos check
+```
+
+### 🧠 AI Provider Flexibility
+Automatic fallback chain:
+1. **Ollama** (Local, privacy-first)
+2. **Managed AI** (Zero-config cloud)
+3. **Google Gemini** (Personal API key)
+4. **Groq** (Fast, cost-effective)
+
+## 📦 Installation
+
+### NPM (Recommended)
+```bash
+npm install -g tharos
+```
+
+### From Source
+```bash
+git clone https://github.com/yourusername/tharos.git
+cd tharos
+npm install
+npm run build
+npm link
+```
+
+## 🚀 Quick Start
+
+### 1. Initialize Your Project
+```bash
+cd your-project
+tharos init
+```
+
+This creates:
+- `tharos.yaml` - Configuration file
+- `.git/hooks/pre-commit` - Automatic validation
+- `.git/hooks/pre-push` - CI/CD enforcement
+
+### 2. Configure Your Policy
+Choose a pre-built policy or create your own:
+
+```bash
+# Use OWASP Top 10
+cp node_modules/tharos/policies/owasp-top10.yaml tharos.yaml
+
+# Use SOC 2
+cp node_modules/tharos/policies/soc2.yaml tharos.yaml
+
+# Use GDPR
+cp node_modules/tharos/policies/gdpr.yaml tharos.yaml
+```
+
+### 3. Set Up AI (Optional)
+```bash
+# Option 1: Use Groq (recommended)
+export GROQ_API_KEY="your-groq-key"
+
+# Option 2: Use Gemini
+export GEMINI_API_KEY="your-gemini-key"
+
+# Option 3: Use local Ollama
+ollama serve
+```
+
+### 4. Run Analysis
+```bash
+# Check all staged files
+tharos check
+
+# Analyze specific file
+tharos analyze src/api/auth.ts
+
+# Analyze entire project
+tharos analyze .
+```
+
+## 📋 Configuration
+
+### `tharos.yaml` Example
+```yaml
+name: "My Project Security Policy"
+version: "1.0.0"
+
+# Severity levels: block, warning, info
+default_severity: "warning"
+
+# Security rules
+security:
+  enabled: true
+  rules:
+    - pattern: "eval\\("
+      message: "Code injection risk: eval() detected"
+      severity: "block"
+    
+    - pattern: "(?i)(api[_-]?key|secret).*=.*['\"].*['\"]"
+      message: "Hardcoded credentials detected"
+      severity: "block"
+
+# AI configuration
+ai:
+  enabled: true
+  provider: "auto"  # auto, ollama, gemini, groq
+  min_risk_score: 60  # Only show insights for risks >= 60
+```
+
+## 🔧 VSCode Extension
+
+### Installation
+1. Open VSCode
+2. Press `Ctrl+Shift+X` (Extensions)
+3. Search for "Tharos"
+4. Click Install
+
+### Features
+- **Real-time Analysis**: See issues as you save
+- **Hover Insights**: Rich tooltips with AI recommendations
+- **Quick Fixes**: Apply suggested changes with one click
+- **Status Bar**: Live issue counter
+
+### Configuration
+```json
+{
+  "tharos.enableAI": true,
+  "tharos.severity": "warning",
+  "tharos.corePath": ""  // Auto-detected
+}
+```
+
+## 📚 Policy Library
+
+Tharos includes comprehensive pre-built policies:
+
+| Policy | Description | Rules | Use Case |
+|--------|-------------|-------|----------|
+| `owasp-top10.yaml` | OWASP Top 10 2021 | 50+ | General web security |
+| `soc2.yaml` | SOC 2 Type II | 40+ | SaaS compliance |
+| `gdpr.yaml` | GDPR Compliance | 35+ | EU data protection |
+| `pci-dss.yaml` | PCI-DSS v4.0 | 45+ | Payment processing |
+| `code-quality.yaml` | Best Practices | 60+ | Code maintainability |
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────┐
+│           Tharos Ecosystem              │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌──────────┐  ┌──────────┐  ┌───────┐│
+│  │   CLI    │  │  VSCode  │  │GitHub ││
+│  │   Tool   │  │Extension │  │Action ││
+│  └────┬─────┘  └────┬─────┘  └───┬───┘│
+│       │             │             │    │
+│       └─────────────┼─────────────┘    │
+│                     │                  │
+│            ┌────────▼────────┐         │
+│            │  tharos-core    │         │
+│            │  (Go Binary)    │         │
+│            │  - AST Analysis │         │
+│            │  - AI Integration│        │
+│            └────────┬────────┘         │
+│                     │                  │
+│       ┌─────────────┼─────────────┐   │
+│       │             │             │   │
+│  ┌────▼────┐  ┌────▼────┐  ┌────▼───┐│
+│  │ Ollama  │  │ Gemini  │  │  Groq  ││
+│  │ (Local) │  │ (Cloud) │  │(Cloud) ││
+│  └─────────┘  └─────────┘  └────────┘│
+└─────────────────────────────────────────┘
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Development Setup
+```bash
+# Clone repository
+git clone https://github.com/yourusername/tharos.git
+cd tharos
+
+# Install dependencies
+npm install
+
+# Build Go core
+cd go-core
+go build -o tharos-core.exe main.go
+
+# Build CLI
+cd ..
+npm run build
+
+# Run tests
+npm test
+```
+
+## 📖 Documentation
+
+Full documentation available at [https://tharos.dev](https://tharos.dev)
+
+- [Getting Started Guide](https://tharos.dev/docs/getting-started)
+- [Policy Configuration](https://tharos.dev/docs/policies)
+- [AI Integration](https://tharos.dev/docs/ai)
+- [VSCode Extension](https://tharos.dev/docs/vscode)
+- [API Reference](https://tharos.dev/docs/api)
+
+## 🎯 Use Cases
+
+### Startup / Small Team
+```bash
+# Quick setup with OWASP
+tharos init
+cp policies/owasp-top10.yaml tharos.yaml
+export GROQ_API_KEY="your-key"
+```
+
+### Enterprise / Compliance-Focused
+```bash
+# SOC 2 + GDPR + PCI-DSS
+tharos init
+# Combine multiple policies in tharos.yaml
+# Set up managed AI endpoint
+export THAROS_MANAGED_KEY="your-enterprise-key"
+```
+
+### Open Source Project
+```bash
+# Code quality focus
+tharos init
+cp policies/code-quality.yaml tharos.yaml
+# Use local Ollama (no API keys needed)
+ollama serve
+```
+
+## 🔐 Security
+
+Tharos takes security seriously:
+- **Local-First**: AST analysis runs entirely locally
+- **Privacy**: AI analysis is optional and configurable
+- **No Data Collection**: We don't collect or store your code
+- **Open Source**: Full transparency, audit the code yourself
+
+## 📊 Performance
+
+- **AST Analysis**: < 100ms for typical files
+- **AI Insights**: < 2s with Groq, < 5s with Gemini
+- **VSCode Extension**: No UI blocking, async analysis
+- **Git Hooks**: < 1s for pre-commit checks
+
+## 🗺️ Roadmap
+
+- [ ] Additional language support (C++, C#, PHP, Ruby)
+- [ ] Cloud dashboard for team management
+- [ ] Custom rule builder UI
+- [ ] IDE integrations (JetBrains, Sublime)
+- [ ] CI/CD platform integrations (GitLab, CircleCI)
+- [ ] Machine learning model training on your codebase
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details
+
+## 🙏 Acknowledgments
+
+- OWASP for security guidelines
+- Google Gemini team for AI capabilities
+- Groq for fast inference
+- Ollama for local AI support
+- The open-source community
+
+## 💬 Support
+
+- **Documentation**: [https://tharos.dev](https://tharos.dev)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/tharos/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/tharos/discussions)
+- **Discord**: [Join our community](https://discord.gg/tharos)
+
+---
+
+**Built with ❤️ by developers, for developers**
+
+🦊 **Tharos** - Because security shouldn't slow you down

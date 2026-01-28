@@ -1,0 +1,80 @@
+---
+title: Getting Started
+description: How to install and configure Tharos
+---
+
+Get up and running with Tharos in minutes.
+
+## Installation
+
+Tharos is distributed as a single binary via NPM. You can install it globally or per-project.
+
+```bash
+npm install -g tharos-cli
+```
+
+## Initialization
+
+To set up Tharos in your repository, run:
+
+```bash
+tharos init
+```
+
+This command will:
+1.  Initialize a `.tharos` configuration directory.
+2.  Install the intelligent git hooks.
+3.  Link your repository to your organization's cloud policy (if configured).
+
+## Basic Usage
+
+### Syncing Policies
+
+If your organization uses cloud-managed policies, you can sync them manually:
+
+```bash
+tharos sync
+```
+
+### Manual Check
+
+You can run a semantic check on your current changes without committing:
+
+```bash
+tharos check
+```
+
+## CI/CD Integration
+
+### GitHub Action
+
+Enforce Tharos policies in your GitHub workflows. Create a file at `.github/workflows/tharos-check.yml`:
+
+```yaml
+name: Tharos Policy Check
+on: [pull_request]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g tharos-cli
+      - run: tharos check --ci
+```
+
+## Configuration
+
+Custom rules and AI settings can be defined in your `.tharos.json` file.
+
+```json
+{
+  "ai": {
+    "provider": "ollama",
+    "model": "llama3"
+  },
+  "policies": [
+    "security-hardened",
+    "naming-conventions"
+  ]
+}
+```

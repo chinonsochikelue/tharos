@@ -1,0 +1,16 @@
+­ƒªè Tharos is analyzing your intent...
+
+­ƒôä Analyzing test-bad-code.ts...
+  ­ƒøæ SECURITY: Potentially sensitive variable name 'API_KEY' found.
+     Line 2
+  ­ƒøæ SECURITY: Suspiciously long string literal detected; possible hardcoded token.
+     Line 2
+  ­ƒøæ SECURITY: Dangerous function 'eval' detected via AST analysis.
+     Line 5
+  ÔÜá´©Å CODE_SMELL: Static analysis found unresolved TODO in comment.
+     Line 8
+
+  ­ƒÆí Tip: No AI insights available.
+     Run "ollama serve" or use Tharos Cloud for smart analysis.
+
+­ƒøæ Commit blocked by Tharos policy. Please fix the issues above.

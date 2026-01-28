@@ -1,0 +1,19 @@
+# Tharos Organizational Policy
+policies:
+  security:
+    severity: block
+  code_smell:
+    severity: warning
+  todo:
+    severity: warning
+
+# Cloud Sync Config
+sync:
+  enabled: true
+  interval: hourly
+  enforce_unbreakable: true
+
+# AI Engine Config
+ai:
+  mode: managed # Options: local, managed, hybrid
+  provider: auto

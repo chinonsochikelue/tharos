@@ -1,0 +1,9 @@
+­ƒªè Tharos is analyzing your intent...
+
+­ƒôä Analyzing test-bad-code.ts...
+  ­ƒøæ ERROR: Could not read file: open test-bad-code.ts: The system cannot find the file specified.
+
+  ­ƒÆí Tip: No AI insights available.
+     Run "ollama serve" or use Tharos Cloud for smart analysis.
+
+­ƒøæ Commit blocked by Tharos policy. Please fix the issues above.

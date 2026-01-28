@@ -1,4 +1,4 @@
-// This is a test file for Fennec
+// This is a test file for Tharos
 const API_KEY = "sk-1234567890abcdef1234567890abcdefguyyh"; // Should be blocked
 
 function unsafe() {

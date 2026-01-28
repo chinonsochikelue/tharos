@@ -1,0 +1,12 @@
+src/
+tests/
+.github/
+.vscode/
+docs/
+dashboard/
+vscode-extension/
+go-core/
+policies/
+.gitignore
+tsconfig.json
+tharos.yaml

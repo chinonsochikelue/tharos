@@ -3,17 +3,20 @@ import path from 'path';
 import { execa } from 'execa';
 
 const HOOK_CONTENT = `#!/bin/sh
-# Fennec Git Hook
-// This hook is managed by Fennec. Do not modify manually.
+# Tharos Git Hook
+// This hook is managed by Tharos. Do not modify manually.
 // VERSION: 0.1.0
 
 # Self-healing check
-if ! command -v fennec > /dev/null 2>&1; then
-  echo "🦊 Fennec CLI not found. Skipping checks..."
+if ! command -v tharos > /dev/null 2>&1; then
+  echo "🦊 Tharos CLI not found. Skipping checks..."
   exit 0
 fi
 
-fennec check --self-heal
+# Auto-sync policies (non-blocking)
+tharos sync > /dev/null 2>&1 &
+
+tharos check --self-heal
 `;
 
 export async function initHooks() {
@@ -44,14 +47,14 @@ export async function verifyHooks() {
 
     const preCommitHook = path.join(gitDir, 'hooks', 'pre-commit');
     if (!fs.existsSync(preCommitHook)) {
-        console.log('⚠️ Fennec hook missing. Re-installing...');
+        console.log('⚠️ Tharos hook missing. Re-installing...');
         await initHooks();
         return;
     }
 
     const content = fs.readFileSync(preCommitHook, 'utf-8');
-    if (!content.includes('managed by Fennec')) {
-        console.log('⚠️ Fennec hook tampered with. Repairing...');
+    if (!content.includes('managed by Tharos')) {
+        console.log('⚠️ Tharos hook tampered with. Repairing...');
         await initHooks();
     }
 }

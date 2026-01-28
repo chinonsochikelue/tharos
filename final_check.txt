@@ -1,0 +1,33 @@
+­ƒªè Tharos is analyzing your intent...
+
+­ƒôä Analyzing test-bad-code.ts...
+  ­ƒøæ SECURITY: Potentially sensitive variable name 'API_KEY' found.
+     Line 2
+  ­ƒøæ SECURITY: Suspiciously long string literal detected; possible hardcoded token.
+     Line 2
+  ­ƒøæ SECURITY: Dangerous function 'eval' detected via AST analysis.
+     Line 5
+  ÔÜá´©Å CODE_SMELL: Static analysis found unresolved TODO in comment.
+     Line 8
+
+  ­ƒºá Tharos AI Semantic Insights:
+     Ô£¿ ```json
+{
+  "recommendation": "The code snippet has multiple security concerns, including a potentially sensitive API key and the use of the eval function, which can pose a significant security risk. It is advisable to refactor the code to remove the hardcoded API key, replace the eval function with a safer alternative, and address the unresolved TODO comment.",
+  "risk_score": 90,
+  "suggested_fix": "
+const apiKey = process.env.API_KEY || '';
+function safeLogger() {
+  console.log('dangerous');
+}
+// Remove TODO comment after refactoring the logic
+function smells() {
+  // Refactored logic
+  return true;
+}
+"
+}
+```
+     ­ƒôè Risk Score: 50/100
+
+­ƒøæ Commit blocked by Tharos policy. Please fix the issues above.
