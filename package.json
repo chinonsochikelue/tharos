@@ -26,7 +26,7 @@
     "tharos": "dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && copy go-core\\tharos-core.exe dist\\tharos-core.exe",
     "start": "node --loader ts-node/esm src/index.ts",
     "dev": "node --loader ts-node/esm src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"

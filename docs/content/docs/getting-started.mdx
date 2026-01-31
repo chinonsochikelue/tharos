@@ -10,7 +10,7 @@ Get up and running with Tharos in minutes.
 Tharos is distributed as a single binary via NPM. You can install it globally or per-project.
 
 ```bash
-npm install -g tharos-cli
+npm install -g @collabchron/tharos
 ```
 
 ## Initialization
@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm install -g tharos-cli
+      - run: npm install -g @collabchron/tharos
       - run: tharos check --ci
 ```
 
