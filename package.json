@@ -1,6 +1,6 @@
 {
   "name": "@collabchron/tharos",
-  "version": "1.0.0",
+  "version": "0.1.4",
   "description": "Tharos: Intelligent, Unbreakable Code Policy Enforcement",
   "keywords": [
     "security",
@@ -15,6 +15,10 @@
     "type": "git",
     "url": "https://github.com/chinonsochikelue/tharos"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://tharos.vercel.app",
   "files": [
     "dist",
     "README.md",

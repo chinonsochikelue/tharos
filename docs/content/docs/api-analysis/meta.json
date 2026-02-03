@@ -1,0 +1,8 @@
+{
+  "$schema": "..\\..\\..\\.source\\json-schema\\docs.meta.json",
+  "title": "API Analysis",
+  "description": "Tharos API Analysis",
+  "root": true,
+  "icon": "Webhook",
+  "pages": ["---API Analysis---", "index", "analysis", "cli"]
+}

@@ -10,7 +10,11 @@
   "scope": "/",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["productivity", "utilities", "business"],
+  "categories": [
+    "productivity",
+    "utilities",
+    "business"
+  ],
   "screenshots": [
     {
       "src": "/desktop.png",
@@ -28,6 +32,16 @@
     }
   ],
   "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
     {
       "src": "/favicon.ico",
       "sizes": "16x16 32x32",
@@ -61,8 +75,8 @@
   "related_applications": [
     {
       "platform": "web",
-      "url": "https://github.com/chinonsochikelue/notiq",
-      "id": "notiq-github"
+      "url": "https://github.com/chinonsochikelue/tharos",
+      "id": "tharos-github"
     }
   ],
   "prefer_related_applications": false,
@@ -73,9 +87,16 @@
     {
       "action": "/",
       "accept": {
-        "text/markdown": [".md", ".markdown"],
-        "text/plain": [".txt"],
-        "application/json": [".json"]
+        "text/markdown": [
+          ".md",
+          ".markdown"
+        ],
+        "text/plain": [
+          ".txt"
+        ],
+        "application/json": [
+          ".json"
+        ]
       }
     }
   ]

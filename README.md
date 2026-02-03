@@ -1,4 +1,7 @@
-# 🦊 Tharos
+<div align="center">
+  <img src="docs/public/logo_banner.png" alt="Tharos Logo" width="200"/>
+  
+  # Tharos
 
 **AI-Powered Security & Quality Analysis for Modern Development**
 
@@ -7,6 +10,8 @@ Tharos is a comprehensive security analysis tool that combines static code analy
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Go](https://img.shields.io/badge/Go-1.21-00ADD8)](https://golang.org/)
+
+</div>
 
 ## ✨ Features
 

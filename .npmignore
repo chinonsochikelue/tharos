@@ -10,3 +10,4 @@ policies/
 .gitignore
 tsconfig.json
 tharos.yaml
+.npmrc

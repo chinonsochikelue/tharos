@@ -30,3 +30,6 @@ test-multi-vuln.ts
 # Build artifacts
 fennec-*.tgz
 *.exe
+
+# npmrc
+.npmrc

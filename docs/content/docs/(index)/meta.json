@@ -1,7 +1,18 @@
+
 {
-  "index": "Overview",
-  "quickstart": "Quick Start",
-  "features": "Features",
-  "examples": "Examples",
-  "community": "Community"
+  "title": "Documentation",
+  "description": "Set up your documentation",
+  "icon": "Book",
+  "root": true,
+  "pages": [
+    "---Getting Started---",
+    "index",
+    "quickstart",
+    "examples",
+    "---Features---",
+    "features",
+    "---Community---",
+    "community",
+    "..."
+  ]
 }

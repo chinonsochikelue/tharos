@@ -115,6 +115,26 @@ export const metadata = createMetadata({
     statusBarStyle: "default",
   },
 
+  // Favicon and icons
+  icons: {
+    icon: [
+      { url: '/icons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/favicon.ico', sizes: 'any' }
+    ],
+    apple: [
+      { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
+    ],
+    other: [
+      {
+        rel: 'mask-icon',
+        url: '/icons/favicon.svg',
+      }
+    ]
+  },
+
+  manifest: '/manifest.json',
+
   // Verification and ownership
   verification: {
     google: "ayqp5JY2qzW_am918ybg1JSEJ84P5xCGxdbeD4JK0ik",

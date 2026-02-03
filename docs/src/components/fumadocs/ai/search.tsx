@@ -321,22 +321,23 @@ export function AISearch({ children }: { children: ReactNode }) {
 export function AISearchTrigger() {
   const { open, setOpen } = use(Context)!
 
-  return (
-    <button
-      className={cn(
-        buttonVariants({
-          variant: 'secondary',
-        }),
-        'fixed end-4 bottom-4 z-20 w-24 gap-3 rounded-2xl text-fd-muted-foreground shadow-lg transition-all',
-        open && 'translate-y-10 opacity-0'
-      )}
-      onClick={() => setOpen(true)}
-      type='button'
-    >
-      <MessageCircleIcon className='size-4.5' />
-      Ask AI
-    </button>
-  )
+  // return (
+  //   <button
+  //     className={cn(
+  //       buttonVariants({
+  //         variant: 'secondary',
+  //       }),
+  //       'fixed end-4 bottom-4 z-20 w-24 gap-3 rounded-2xl text-fd-muted-foreground shadow-lg transition-all',
+  //       open && 'translate-y-10 opacity-0'
+  //     )}
+  //     onClick={() => setOpen(true)}
+  //     type='button'
+  //   >
+  //     <MessageCircleIcon className='size-4.5' />
+  //     Ask AI
+  //   </button>
+  // )
+return null
 }
 
 export function AISearchPanel() {

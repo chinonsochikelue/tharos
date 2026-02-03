@@ -277,7 +277,7 @@ export default function HomePage() {
             {/* Brand Column */}
             <div className="space-y-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-neon to-purple-neon flex items-center justify-center font-black text-blue-deep shadow-[0_0_20px_rgba(0,242,255,0.4)]">T</div>
+                <Image src="/logo.png" alt="Tharos Logo" width={60} height={60} />
                 <span className="text-2xl font-black tracking-tighter italic">THAROS</span>
               </div>
               <p className="text-white/40 text-sm leading-relaxed max-w-xs">

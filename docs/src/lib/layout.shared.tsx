@@ -8,9 +8,13 @@ import { ShieldCheck } from 'lucide-react'
 export const title = 'Tharos'
 
 export const logo = (
-  <div className="bg-orange-600 p-1 rounded-md">
-    <ShieldCheck className="size-5 text-white" />
-  </div>
+  <Image
+    src="/icons/android-chrome-192x192.png"
+    alt="Tharos Logo"
+    width={32}
+    height={32}
+    className="rounded-md"
+  />
 )
 
 export const linkItems: LinkItemType[] = [
