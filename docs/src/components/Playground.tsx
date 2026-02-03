@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
+import Image from "next/image";
 
 const DEFAULT_CODE = `const express = require("express");
 const mysql = require("mysql");
@@ -158,10 +159,8 @@ export function Playground() {
             <header className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-fd-border bg-fd-muted/30 backdrop-blur-md z-50">
                 <div className="flex items-center gap-3 md:gap-4">
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="bg-orange-600 p-1.5 rounded-lg group-hover:bg-orange-500 transition-colors">
-                            <Shield className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                        </div>
-                        <span className="font-black italic tracking-tighter text-lg md:text-xl">THAROS <span className="hidden sm:inline">PLAYGROUND</span></span>
+                        <Image src="/logo.png" alt="Tharos Logo" width={32} height={32} />
+                        <span className="font-black italic tracking-tighter text-lg md:text-xl">THAROS <span className="hidden sm:inline pl-2">PLAYGROUND</span></span>
                     </Link>
                     <div className="h-4 w-px bg-fd-border mx-1 md:mx-2 hidden sm:block" />
                     <nav className="hidden lg:flex items-center gap-6">
@@ -173,7 +172,7 @@ export function Playground() {
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-fd-muted/50 border border-fd-border text-[10px] md:text-xs font-medium">
                         <div className={`w-2 h-2 rounded-full ${isScanning || isFixing ? 'bg-orange-500 animate-pulse' : 'bg-green-500'}`} />
-                        <span className="hidden xs:inline">Engine:</span> Go v0.1.0
+                        <span className="hidden xs:inline">Engine:</span> Go v0.1.5
                     </div>
                 </div>
             </header>

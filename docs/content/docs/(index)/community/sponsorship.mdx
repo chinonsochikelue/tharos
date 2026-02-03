@@ -1,0 +1,93 @@
+---
+title: Sponsorship & Ads
+description: Information about sponsoring Tharos and advertising opportunities
+icon: Heart
+---
+
+import { SponsorSection, InlineAd } from '@/components/sponsors'
+
+# Sponsorship & Advertising
+
+Tharos is an open-source project maintained by passionate developers. Your support helps us continue building and improving the tool.
+
+## Become a Sponsor
+
+Support Tharos development on GitHub Sponsors:
+
+<div className="my-6">
+  <SponsorSection showAds={false} />
+</div>
+
+### Why Sponsor?
+
+- 🚀 **Accelerate Development**: Help us ship features faster
+- 🐛 **Priority Support**: Get faster responses to issues
+- 📢 **Brand Visibility**: Your logo on our docs and README
+- 🤝 **Community Impact**: Support the open-source ecosystem
+
+### Sponsor Tiers
+
+| Tier | Monthly | Benefits |
+|------|---------|----------|
+| 🥉 **Bronze** | $10 | Name in README |
+| 🥈 **Silver** | $50 | Logo in docs sidebar |
+| 🥇 **Gold** | $200 | Logo on homepage + docs |
+| 💎 **Platinum** | $500+ | Premium placement + custom benefits |
+
+## Advertising Opportunities
+
+Reach thousands of security-conscious developers with targeted advertising in our documentation.
+
+### Ad Placements
+
+1. **Sidebar Ads**: Persistent visibility in docs sidebar
+2. **Inline Ads**: Contextual placement within articles
+3. **Homepage Featured**: Premium placement on landing page
+
+### Ad Specifications
+
+- **Logo**: 200x200px PNG or SVG
+- **Description**: Max 100 characters
+- **Link**: One external URL
+
+For advertising inquiries, contact: **chinonsoneft@gmail.com**
+
+## Current Sponsors
+
+<SponsorSection showGitHub={false} />
+
+*Your company here! [Become a sponsor](https://github.com/sponsors/chinonsochikelue)*
+
+## Managing Sponsors
+
+Sponsors are managed in `docs/src/lib/sponsors.ts`. To add a new sponsor:
+
+```typescript
+export const sponsors: Sponsor[] = [
+  {
+    id: 'your-company',
+    name: 'Your Company',
+    description: 'Brief description of your company',
+    logo: '/sponsors/your-logo.png',
+    url: 'https://yourcompany.com',
+    tier: 'gold',
+    type: 'sponsor'
+  }
+]
+```
+
+For inline ads in content, use the `InlineAd` component:
+
+```mdx
+import { InlineAd } from '@/components/sponsors'
+
+<InlineAd sponsor={{
+  id: 'example',
+  name: 'Example Product',
+  description: 'Your product description',
+  logo: '/ads/example.png',
+  url: 'https://example.com',
+  tier: 'gold',
+  type: 'ad'
+}} />
+```

@@ -8,6 +8,7 @@ import {
   AISearchPanel,
   AISearchTrigger,
 } from '@/components/fumadocs/ai/search'
+import { SponsorSection } from '@/components/sponsors'
 
 const LEADING_DASHES = /^-+/
 const TRAILING_DASHES = /-+$/
@@ -31,6 +32,11 @@ export default function Layout({ children }: LayoutProps<'/docs'>) {
       }}
       sidebar={{
         collapsible: false,
+        footer: (
+          <div className="p-4 border-t border-fd-border">
+            <SponsorSection compact />
+          </div>
+        ),
         tabs: {
           transform(option, node) {
             const meta = source.getNodeMeta(node)

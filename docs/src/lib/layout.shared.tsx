@@ -29,6 +29,11 @@ export const linkItems: LinkItemType[] = [
     text: 'Playground',
   },
   {
+    type: 'main',
+    url: '/sponsors',
+    text: 'Sponsors',
+  },
+  {
     type: 'icon',
     url: '/rss.xml',
     text: 'RSS',
