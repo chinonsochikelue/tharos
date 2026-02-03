@@ -33,3 +33,5 @@ fennec-*.tgz
 
 # npmrc
 .npmrc
+
+/releases

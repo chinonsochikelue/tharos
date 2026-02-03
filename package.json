@@ -30,7 +30,8 @@
     "tharos": "dist/index.js"
   },
   "scripts": {
-    "build": "tsc && copy go-core\\tharos.exe dist\\tharos.exe",
+    "build": "tsc && npm run build:binary",
+    "build:binary": "node scripts/build-binary.cjs",
     "start": "node --loader ts-node/esm src/index.ts",
     "dev": "node --loader ts-node/esm src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
