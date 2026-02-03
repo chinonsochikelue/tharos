@@ -1,7 +1,7 @@
 {
-  "name": "Notiq - AI-Powered Rich Text Editor",
-  "short_name": "Notiq",
-  "description": "Open-source AI-enhanced rich text editor built with Lexical, Next.js, and TypeScript",
+  "name": "Tharos - AI-Powered Code Policy Enforcement",
+  "short_name": "Tharos",
+  "description": "Open-source AI-enhanced code policy enforcement",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#020b19",
@@ -13,7 +13,10 @@
   "categories": [
     "productivity",
     "utilities",
-    "business"
+    "business",
+    "security",
+    "development",
+    "AI"
   ],
   "screenshots": [
     {
