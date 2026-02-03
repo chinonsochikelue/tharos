@@ -30,10 +30,10 @@ export const metadata = createMetadata({
   description: "Tharos is a next-gen security analysis tool combining fast AST scanning with deep AI semantic reasoning. Catch SQLi, secrets, and logic flaws before production.",
   metadataBase: baseUrl,
   alternates: {
-    canonical: "https://tharos.dev/",
+    canonical: "https://tharos.vercel.app/",
     languages: {
-      "en-US": "https://tharos.dev/en-US",
-      "x-default": "https://tharos.dev/",
+      "en-US": "https://tharos.vercel.app/en-US",
+      "x-default": "https://tharos.vercel.app/",
     },
     types: {
       'application/rss+xml': [
@@ -68,7 +68,7 @@ export const metadata = createMetadata({
   authors: [
     {
       name: "Tharos Security Team",
-      url: "https://github.com/tharos-security"
+      url: "https://github.com/chinonsochikelue/tharos"
     }
   ],
   creator: "Tharos Security Team",
@@ -78,7 +78,7 @@ export const metadata = createMetadata({
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://tharos.dev/",
+    url: "https://tharos.vercel.app/",
     title: "Tharos - AI-Powered Security Analysis",
     description: "Catch vulnerabilities before they reach production. Deep AST analysis + AI semantic insights.",
     siteName: "Tharos Security",
@@ -137,7 +137,7 @@ export const metadata = createMetadata({
 
   // Verification and ownership
   verification: {
-    google: "ayqp5JY2qzW_am918ybg1JSEJ84P5xCGxdbeD4JK0ik",
+    google: "",
   },
 
   // Robots directives

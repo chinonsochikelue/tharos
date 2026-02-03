@@ -9,7 +9,7 @@ export async function getRSS() {
     id: url('/rss.xml'),
     link: url('/rss.xml'),
     language: 'en',
-    image: url('/banner.png'),
+    image: url('/banner_logo.png'),
     favicon: url('/icon.png'),
     copyright: `All rights reserved ${new Date().getFullYear()}, ${title}`,
   })
