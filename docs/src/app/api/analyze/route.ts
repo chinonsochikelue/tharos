@@ -21,8 +21,24 @@ export async function POST(req: NextRequest) {
         await fs.writeFile(tempFile, code);
 
         // Path to tharos binary - adjust based on environment
-        // In dev, it's in the root dist folder
-        const tharosPath = path.resolve(process.cwd(), '../dist/tharos.exe');
+        // In dev, it's in the root dist folder. In prod (Vercel), we'll output it to the local bin folder.
+        const isProd = process.env.NODE_ENV === 'production';
+        const binaryName = process.platform === 'win32' ? 'tharos.exe' : 'tharos';
+
+        let tharosPath;
+        if (isProd) {
+            // Vercel / Production: Expect binary in local bin/ or specific path
+            tharosPath = path.resolve(process.cwd(), 'bin', binaryName);
+            // Fallback to /tmp if copied there during runtime
+            try {
+                await fs.access(tharosPath);
+            } catch {
+                tharosPath = path.resolve('/tmp', binaryName);
+            }
+        } else {
+            // Local Dev
+            tharosPath = path.resolve(process.cwd(), '../dist/tharos.exe');
+        }
 
         let command = `"${tharosPath}" analyze "${tempFile}" --json`;
         if (ai) {
