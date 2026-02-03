@@ -12,8 +12,11 @@ Tharos is a comprehensive security analysis tool that combines static code analy
 
 ### 🔒 Multi-Layer Security Analysis
 - **AST-Based Detection**: Fast, accurate pattern matching for common vulnerabilities
+- **Scanner Mindset**: Context-aware analysis that ignores test files and mock data
+- **Weighted Blocking**: Intelligent CI/CD gating based on finding severity
 - **AI Semantic Analysis**: Deep understanding of code context and intent
 - **Risk Scoring**: Automated 0-100 risk assessment for every finding
+- **SARIF Export**: Standardized reporting for GitHub Advanced Security & other tools
 - **Suggested Fixes**: AI-generated code snippets to resolve issues
 
 ### 🌍 Multi-Language Support

@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { execa } from 'execa';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+const execAsync = promisify(exec);
 const HOOK_CONTENT = `#!/bin/sh
 # Tharos Git Hook
 // This hook is managed by Tharos. Do not modify manually.
@@ -52,7 +54,7 @@ export async function verifyHooks() {
 }
 async function findGitDir() {
     try {
-        const { stdout } = await execa('git', ['rev-parse', '--git-dir']);
+        const { stdout } = await execAsync('git rev-parse --git-dir');
         return path.resolve(stdout.trim());
     }
     catch {

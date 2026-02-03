@@ -1,5 +1,31 @@
 /target
 /node_modules
+/.env
+go-core/.env
 
 # Tharos local config
 .tharos/
+
+/dashboard
+
+# Logs and temporary files
+*.log
+*.txt
+*_results.json
+!package.json
+!tsconfig.json
+!src/**/*.json
+
+# Test files
+test-*.ts
+server.js
+go-core/server.js
+go-core/tharos.sarif
+go-core/*.txt
+go-core/*.json
+!go-core/package.json
+test-bad-code.ts
+test-multi-vuln.ts
+
+# Build artifacts
+fennec-*.tgz

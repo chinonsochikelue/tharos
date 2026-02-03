@@ -1,0 +1,46 @@
+---
+title: Introduction
+description: Welcome to Tharos – AI-Powered Security & Quality Analysis.
+---
+
+import { LucideShieldCheck, LucideZap, LucideTerminal, LucideScale } from 'lucide-react';
+
+# Welcome to Tharos
+
+Tharos is a high-performance security analysis engine that combines fast AST-based pattern matching with deep AI semantic insights. It's designed to catch vulnerabilities, enforce security policies, and automate fixes before they reach production.
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
+  <Card title="AST Detection" icon={<LucideZap className="w-6 h-6 text-orange-500" />}>
+    Lightning fast pattern matching for SQLi, XSS, and hardcoded secrets using our Go-powered engine.
+  </Card>
+  <Card title="AI Insights" icon={<LucideShieldCheck className="w-6 h-6 text-purple-500" />}>
+    Context-aware security analysis using Gemini and Groq to understand complex logic and intent.
+  </Card>
+  <Card title="Magic Fixes" icon={<LucideTerminal className="w-6 h-6 text-green-500" />}>
+    Automated code remediation that suggests and applies fixes directly to your codebase.
+  </Card>
+  <Card title="Compliance" icon={<LucideScale className="w-6 h-6 text-blue-500" />}>
+    Enforce standards like OWASP Top 10, SOC2, and GDPR with pre-built policy frameworks.
+  </Card>
+</div>
+
+## Core Capabilities
+
+### 🛡️ Server-Side Security (New!)
+Tharos now includes specialized detection for modern Node.js and Express.js applications:
+- **SQL Injection**: Detects direct variable interpolation in SQL template literals.
+- **Credential Scanning**: Identifies hardcoded passwords and keys in database connection objects.
+- **Sensitive Route Detection**: Flags unprotected patterns like `/admin`, `/debug`, or `/config`.
+- **Environment Leakage**: Warns against direct exposure of `process.env`.
+
+### ⚡ Hybrid Analysis Engine
+- **Go-Core**: Our analysis engine is written in Go for maximum performance and portability.
+- **Polyglot Support**: Native support for JavaScript, TypeScript, Python, and more.
+- **Git Integration**: Self-healing pre-commit hooks that prevent insecure code from being committed.
+
+### 🧠 AI remediation
+- **Semantic Understanding**: Finds vulnerabilities that traditional linters miss by understanding code flow.
+- **Risk Scoring**: Every finding is assigned an AI-calculated risk score (0-100) to help you prioritize.
+- **Actionable Fixes**: Don't just find bugs—fix them with AI-generated diffs.
+
+[Get Started with Tharos](/docs/quickstart) | [Try the Playground](/playground)

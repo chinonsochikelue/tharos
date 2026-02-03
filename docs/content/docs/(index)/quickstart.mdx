@@ -1,0 +1,68 @@
+---
+title: Quickstart
+description: Get started with Tharos in minutes.
+---
+
+# Quickstart
+
+Tharos can be integrated into your workflow through its CLI, VSCode extension, or CI/CD pipelines.
+
+## Installation
+
+Install the Tharos CLI globally using NPM:
+
+```bash
+npm install -g tharos
+```
+
+## Setup
+
+### 1. Initialize Your Project
+
+Navigate to your project root and initialize Tharos:
+
+```bash
+tharos init
+```
+
+This will:
+- Create a `tharos.yaml` configuration file.
+- Set up self-healing Git hooks in `.git/hooks/`.
+
+### 2. Configure AI (Recommended)
+
+Tharos provides deeper insights when connected to an AI provider. Set your API key in your environment variables:
+
+```bash
+# For Google Gemini
+export GEMINI_API_KEY="your_key"
+
+# OR For Groq (Fast & Free)
+export GROQ_API_KEY="your_key"
+```
+
+### 3. Run Your First Scan
+
+Analyze your code for vulnerabilities:
+
+```bash
+# Scan a specific file
+tharos analyze src/api/login.ts
+
+# Scan your entire project
+tharos analyze .
+```
+
+## Continuous Analysis
+
+### Git Hooks
+Tharos automatically checks your code during the `pre-commit` stage. If a high-risk vulnerability is detected (like a hardcoded secret), it will block the commit until fixed.
+
+### Magic Fixes
+When Tharos finds an issue, use the `fix` command to automatically remediate it:
+
+```bash
+tharos fix src/vulnerable-file.js
+```
+
+[Read more about the Security Engine](/docs/features/security-engine)

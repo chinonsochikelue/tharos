@@ -1,0 +1,73 @@
+{
+  "name": "Bun + ZSH",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "forwardPorts": [
+    // Http
+    3000
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "Web",
+      "onAutoForward": "notify"
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "installOhMyZshConfig": true,
+      "username": "bun",
+      "userUid": "1000",
+      "userGid": "1000",
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": false
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // TypeScript
+        "bierner.lit-html",
+        "better-ts-errors.better-ts-errors",
+        // Makefile
+        "ms-vscode.makefile-tools",
+        // Markdown
+        "bierner.markdown-preview-github-styles",
+        "bierner.markdown-emoji",
+        "bierner.markdown-checkbox",
+        "bierner.jsdoc-markdown-highlighting",
+        "unifiedjs.vscode-mdx",
+        "ms-vscode.wordcount",
+        // Other
+        "albert.tabout",
+        "streetsidesoftware.code-spell-checker",
+        "bierner.comment-tagged-templates"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "debug.internalConsoleOptions": "neverOpen",
+        "editor.formatOnPaste": true,
+        "editor.guides.bracketPairs": "active",
+        "scm.defaultViewMode": "tree",
+        "diffEditor.diffAlgorithm": "advanced",
+        "diffEditor.experimental.showMoves": true,
+        "diffEditor.renderSideBySide": true,
+        "files.watcherExclude": {
+          "**/node_modules/**": true
+        },
+        // Prettifies the response with emojis and such.
+        "betterTypeScriptErrors.prettify": true
+      }
+    }
+  },
+  "remoteUser": "bun"
+}

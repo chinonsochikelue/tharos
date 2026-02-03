@@ -9,11 +9,12 @@ import (
 )
 
 var (
-	cfgFile    string
-	jsonOutput bool
-	aiEnabled  bool
-	fixMode    bool
-	verbose    bool
+	cfgFile      string
+	outputFormat string
+	jsonOutput   bool
+	aiEnabled    bool
+	fixMode      bool
+	verbose      bool
 )
 
 var rootCmd = &cobra.Command{
@@ -37,6 +38,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./tharos.yaml)")
 	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "output in JSON format")
+	rootCmd.PersistentFlags().StringVarP(&outputFormat, "format", "f", "text", "output format (text, json, sarif)")
 	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "verbose output")
 }
 

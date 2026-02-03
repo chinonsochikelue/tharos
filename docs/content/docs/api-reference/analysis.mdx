@@ -1,0 +1,49 @@
+---
+title: Analysis API
+description: Data structure for Tharos analysis results.
+---
+
+# Analysis API
+
+When using the `--json` or `--format sarif` flags, Tharos outputs structured data suitable for integration with other tools.
+
+## JSON Output Structure
+
+The standard JSON output format is an array of `AnalysisResult` objects.
+
+```json
+{
+  "results": [
+    {
+      "file": "src/server.js",
+      "findings": [
+        {
+          "rule": "security_sqli",
+          "severity": "high",
+          "message": "Potential SQL Injection detected",
+          "line": 42,
+          "column": 15,
+          "risk_score": 85,
+          "confidence": "high",
+          "fix_suggestion": "Use parameterized queries..."
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_files": 1,
+    "vulnerabilities": 1,
+    "duration": "120ms"
+  }
+}
+```
+
+## SARIF Output
+
+Tharos supports SARIF v2.1.0 (Static Analysis Results Interchange Format) for seamless integration with GitHub Advanced Security and other SARIF-compatible viewers.
+
+To generate SARIF output:
+
+```bash
+tharos analyze . --format sarif > tharos.sarif
+```

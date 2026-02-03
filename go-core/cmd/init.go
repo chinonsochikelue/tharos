@@ -38,7 +38,7 @@ func runInit(cmd *cobra.Command, args []string) {
 
 	hooksDir := filepath.Join(dir, ".git", "hooks")
 	if _, err := os.Stat(hooksDir); os.IsNotExist(err) {
-		err = os.MkdirAll(hooksDir, 0755)
+		err = os.MkdirAll(hooksDir, 0o755)
 		if err != nil {
 			fmt.Printf("❌ Failed to create hooks directory: %v\n", err)
 			os.Exit(1)
@@ -46,11 +46,11 @@ func runInit(cmd *cobra.Command, args []string) {
 	}
 
 	preCommitHook := filepath.Join(hooksDir, "pre-commit")
-	
+
 	// Hook content
 	hookContent := "#!/bin/sh\n\n# Tharos Security Scan\ntharos check\n"
-	
-	err = os.WriteFile(preCommitHook, []byte(hookContent), 0755)
+
+	err = os.WriteFile(preCommitHook, []byte(hookContent), 0o755)
 	if err != nil {
 		fmt.Printf("❌ Failed to write pre-commit hook: %v\n", err)
 		os.Exit(1)

@@ -2,6 +2,8 @@
 /node_modules
 
 # generated content
+.contentlayer
+.content-collections
 .source
 
 # test & build
@@ -22,5 +24,18 @@ yarn-error.log*
 
 # others
 .env*.local
+.env
 .vercel
 next-env.d.ts
+
+# 
+fumadocs-basehub
+core
+
+# cspell
+.cspellcache
+
+# agent
+.agent
+
+.vercel

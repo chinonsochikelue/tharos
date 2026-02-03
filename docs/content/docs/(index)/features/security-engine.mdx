@@ -1,0 +1,63 @@
+---
+title: Security Engine
+description: Deep dive into the Tharos AST and AI analysis engines.
+---
+
+# Security Engine
+
+Tharos uses a hybrid analysis approach to provide both speed and depth. It combines a fast Go-based AST (Abstract Syntax Tree) scanner with high-level AI semantic reasoning.
+
+## AST-Based Scanning
+The core of Tharos is a high-performance lexer and parser written in Go. This engine traverses your source code in milliseconds to identify dangerous patterns.
+
+### Detection Capabilities
+- **SQL Injection**: Detects direct string interpolation into SQL commands, including support for complex template literals.
+- **Hardcoded Secrets**: Uses **entropy analysis** and pattern matching to catch real secrets (e.g., API keys) while ignoring safe variable names.
+- **XSS Vulnerabilities**: Flags dangerous DOM sinks like `innerHTML`, `document.write`, and React's `dangerouslySetInnerHTML`.
+- **Insecure Routes**: Proactively identifies sensitive administrative or debug endpoints that lack authentication.
+
+## Pro-Grade Features
+
+### 🛡️ Scanner Mindset
+Tharos isn't just a linter; it thinks like a security engineer.
+- **Entropy Analysis**: We analyze the randomness of strings to distinguish between `const password = process.env.PASS` (safe) and `const password = "correct-horse-battery-staple"` (unsafe).
+- **Context Awareness**: The engine automatically lowers the severity of findings in `test/`, `mock/`, or `fixture/` directories to reduce noise.
+- **Intent Support**: Use `// tharos-security-ignore` to intentionally skip specific lines during security research or testing.
+
+### 🚫 Intelligent Commit Blocking
+Tharos enforces quality gates directly in your CLI or CI pipeline. The process will exit with an error code (blocking the commit/build) if it detects:
+- **≥ 1 Critical** Issue (e.g., Real Secret, SQL Injection)
+- **≥ 3 High** Issues (e.g., Insecure Routes, PII Leaks)
+
+### 📊 SARIF Export (Enterprise)
+Integrate Tharos into GitHub Advanced Security, GitLab, or any SARIF-compatible tool.
+
+```bash
+# Generate a standard SARIF report
+tharos analyze . --format sarif > results.sarif
+```
+
+## AI Semantic Analysis
+While the AST engine catches obvious patterns, the AI engine understands context. By leveraging models like **Gemini 1.5 Pro** and **Llama 3 (via Groq)**, Tharos can:
+
+1. **Calculate Risk Scores**: Goes beyond "True/False" to provide a confidence level and risk probability for every finding.
+2. **Contextualize Vulnerabilities**: Distinguishes between a "test" password in a mock file and a real hardcoded credential in a production config.
+3. **Generate Fixes**: Provides drop-in code replacements that resolve the security issue while maintaining your project's coding style.
+
+## Magic Fixes
+Tharos doesn't just find issues; it fixes them. Our "Magic Fix" technology can automatically rewrite insecure code patterns into safe alternatives.
+
+```bash
+# Apply fixes from the CLI
+tharos fix src/app/login.ts
+```
+
+In the **Playground**, you can click the **MAGIC FIX** button to see this technology in action in real-time.
+
+## Supported Languages
+Currently, Tharos provides deep support for:
+- **JavaScript/TypeScript** (Full AST analysis)
+- **Node.js/Express.js** (Specialized security rules)
+- **React** (Component-level security checks)
+
+*Support for Python, Go, and Rust is currently in beta.*

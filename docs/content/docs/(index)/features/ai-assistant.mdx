@@ -1,0 +1,40 @@
+---
+title: AI Writing Assistant
+description: Supercharge your writing with integrated AI power.
+---
+
+# AI Writing Assistant
+
+Notiq integrates seamlessly with advanced LLMs (like GPT-4) to help you write faster, better, and more creatively.
+
+## Features
+
+### Smart Writing
+Select any text and use the AI menu to:
+- **Improve Writing**: Enhances clarity and flow.
+- **Fix Grammar**: Polishes your text for professional quality.
+- **Change Tone**: Switch between formal, casual, or persuasive.
+- **Shorten/Lengthen**: Quickly adjust content length.
+
+### Contextual AI Chat
+Ask questions about your document directly. The AI understands the context of your current writing, allowing you to:
+- Summarize long sections.
+- Brainstorm new ideas based on existing content.
+- Translate text to different languages.
+
+### Intelligent Auto-completion
+Notiq provides smart suggestions as you type, helping you complete sentences and stay in the flow.
+
+## Configuration
+
+To enable AI features, you need to provide an API endpoint in your `Editor` configuration:
+
+```tsx
+<Editor 
+  aiConfig={{
+    apiEndpoint: "/api/ai",
+  }}
+/>
+```
+
+The endpoint should handle requests for completion and chat, typically using the `ai` SDK.

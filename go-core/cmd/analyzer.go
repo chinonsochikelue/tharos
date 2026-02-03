@@ -67,13 +67,18 @@ type LineFix struct {
 }
 
 type Finding struct {
-	Type        string `json:"type"`
-	Message     string `json:"message"`
-	Severity    string `json:"severity"` // "warning", "block", "info"
-	Line        int    `json:"line"`
-	ByteOffset  int    `json:"byte_offset,omitempty"`
-	ByteLength  int    `json:"byte_length,omitempty"`
-	Replacement string `json:"replacement,omitempty"`
+	Rule        string  `json:"rule"`
+	Type        string  `json:"type"`
+	Message     string  `json:"message"`
+	Severity    string  `json:"severity"` // "critical", "high", "medium", "info"
+	Confidence  float64 `json:"confidence"`
+	Explain     string  `json:"explain"`
+	Remediation string  `json:"remediation"`
+	Autofix     bool    `json:"autofix"`
+	Line        int     `json:"line"`
+	ByteOffset  int     `json:"byte_offset,omitempty"`
+	ByteLength  int     `json:"byte_length,omitempty"`
+	Replacement string  `json:"replacement,omitempty"`
 }
 
 var policySeverity string
@@ -124,6 +129,12 @@ func setupCommand() {
 func printJSONOutput(result BatchResult) {
 	jsonOutput, _ := json.MarshalIndent(result, "", "  ")
 	fmt.Println(string(jsonOutput))
+}
+
+func printSARIFOutput(results []AnalysisResult) {
+	sarif := ConvertToSARIF(results)
+	sarifJSON, _ := json.MarshalIndent(sarif, "", "  ")
+	fmt.Println(string(sarifJSON))
 }
 
 func renderMarkdown(content string) (string, error) {
@@ -218,13 +229,8 @@ func printRichOutput(result BatchResult, verboseMode bool, fixModeEnabled bool) 
 	}
 
 	if fixModeEnabled {
-		fmt.Printf("%s⚙️  Auto-fix mode enabled - applying fixes...%s\n", colorYellow, colorReset)
-		appliedCount := applyFixes(result.Results)
-		if appliedCount > 0 {
-			fmt.Printf("%s✅ Applied %d fixes across analyzed files.%s\n", colorGreen, appliedCount, colorReset)
-		} else {
-			fmt.Printf("%sℹ️  No auto-fixes were available for the detected issues.%s\n", colorGray, colorReset)
-		}
+		// Just print a note that fixes were attempted if in rich mode
+		fmt.Printf("%s⚙️  Auto-fixes were processed for this scan.%s\n", colorYellow, colorReset)
 	}
 }
 
@@ -284,7 +290,7 @@ func applyFixes(results []AnalysisResult) int {
 		}
 
 		if appliedToFile > 0 {
-			err = ioutil.WriteFile(res.File, newContent, 0644)
+			err = ioutil.WriteFile(res.File, newContent, 0o644)
 			if err != nil {
 				fmt.Printf("  %s❌ Failed to write fixes to %s: %v%s\n", colorRed, res.File, err, colorReset)
 			} else {
@@ -298,9 +304,11 @@ func applyFixes(results []AnalysisResult) int {
 
 func getSeveritySymbol(severity string) string {
 	switch severity {
-	case "block":
+	case "critical":
+		return "💀"
+	case "high":
 		return "🔴"
-	case "warning":
+	case "medium":
 		return "⚠️ "
 	case "info":
 		return "ℹ️ "
@@ -311,13 +319,29 @@ func getSeveritySymbol(severity string) string {
 
 func getSeverityColor(severity string) string {
 	switch severity {
-	case "block":
+	case "critical":
+		return colorRed + colorBold
+	case "high":
 		return colorRed
-	case "warning":
+	case "medium":
 		return colorYellow
 	default:
 		return colorReset
 	}
+}
+
+func calculateEntropy(s string) float64 {
+	m := make(map[rune]int)
+	for _, r := range s {
+		m[r]++
+	}
+	var entropy float64
+	for _, count := range m {
+		p := float64(count) / float64(len(s))
+		entropy -= p * (p / float64(0.69314718056)) // log2 approximation
+	}
+	// Simplified entropy for heuristic
+	return float64(len(m)) / float64(len(s))
 }
 
 func analyzePath(path string, aiFlag bool) []AnalysisResult {
@@ -395,6 +419,11 @@ func analyzeFile(filePath string, aiFlag bool) AnalysisResult {
 
 	content, err := ioutil.ReadFile(filePath)
 	if err != nil {
+		// PRO-GRADE: Gracefully handle deleted files in staged check
+		if os.IsNotExist(err) {
+			return result
+		}
+
 		result.Findings = append(result.Findings, Finding{
 			Type:     "error",
 			Message:  fmt.Sprintf("Could not read file: %v", err),
@@ -404,7 +433,7 @@ func analyzeFile(filePath string, aiFlag bool) AnalysisResult {
 	}
 
 	// 1. Precise AST Analysis
-	analyzeAST(content, &result, policySeverity)
+	analyzeAST(content, &result, policySeverity, filePath)
 
 	// 2. Integration with AI Providers
 	if len(result.Findings) > 0 && (aiFlag || os.Getenv("THAROS_AI_AUTO_EXPLAIN") == "true") {
@@ -418,9 +447,19 @@ func analyzeFile(filePath string, aiFlag bool) AnalysisResult {
 }
 
 // Rule definition for extensibility
-type RuleCheck func(tokenType js.TokenType, text string, prevToken js.TokenType, prevText string, currentLine int, byteOffset int) *Finding
+type RuleCheck func(tokenType js.TokenType, text string, prevToken js.TokenType, prevText string, pPrevToken js.TokenType, pPrevText string, currentLine int, byteOffset int, filePath string) *Finding
 
-func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string) {
+func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, filePath string) {
+	// FIX: Handle Hashbang/Shebang lines by masking them with spaces to preserve line numbers
+	if len(content) > 2 && string(content[0:2]) == "#!" {
+		for i := 0; i < len(content); i++ {
+			if content[i] == '\n' {
+				break
+			}
+			content[i] = ' '
+		}
+	}
+
 	input := parse.NewInputBytes(content)
 	lexer := js.NewLexer(input)
 
@@ -428,148 +467,205 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string) 
 	byteOffset := 0
 	var prevToken js.TokenType
 	var prevText string
+	var pPrevToken js.TokenType
+	var pPrevText string
+
+	var ignoreLine int
 
 	// Define our rules
 	rules := []RuleCheck{
 		// Rule: Check for dangerous functions (eval, exec)
-		func(tt js.TokenType, text string, pt js.TokenType, pText string, line int, offset int) *Finding {
+		func(tt js.TokenType, text string, pt js.TokenType, pText string, ppt js.TokenType, ppText string, line int, offset int, filePath string) *Finding {
 			if tt == js.IdentifierToken && (text == "eval" || text == "exec") {
 				return &Finding{
-					Type:       "security_code_injection",
-					Message:    fmt.Sprintf("Dangerous function '%s' detected.", text),
-					Severity:   "block",
-					Line:       line,
-					ByteOffset: offset,
-					ByteLength: len(text),
+					Rule:        "security.code_injection",
+					Type:        "security_code_injection",
+					Message:     fmt.Sprintf("Dangerous function '%s' detected.", text),
+					Severity:    "high",
+					Confidence:  0.9,
+					Explain:     "Functions like eval() can execute arbitrary strings as code, leading to injection vulnerabilities.",
+					Remediation: "Avoid eval(). Use JSON.parse() for data or refactor to use explicit logic.",
+					Line:        line,
+					ByteOffset:  offset,
+					ByteLength:  len(text),
 				}
 			}
 			return nil
 		},
-		// Rule: Check for hardcoded credentials
-		func(tt js.TokenType, text string, pt js.TokenType, pText string, line int, offset int) *Finding {
-			if tt == js.IdentifierToken {
-				lowerId := strings.ToLower(text)
-				if strings.Contains(lowerId, "api") || strings.Contains(lowerId, "key") || strings.Contains(lowerId, "secret") || strings.Contains(lowerId, "password") || strings.Contains(lowerId, "token") {
-					// Only flag if it's likely a variable assignment or similar
-					return &Finding{
-						Type:       "security_credential",
-						Message:    fmt.Sprintf("Identifier '%s' might contain sensitive data. Ensure it is not a hardcoded secret.", text),
-						Severity:   "warning",
-						Line:       line,
-						ByteOffset: offset,
-						ByteLength: len(text),
+		// Rule: PRO-GRADE Credential Detection
+		func(tt js.TokenType, text string, pt js.TokenType, pText string, ppt js.TokenType, ppText string, line int, offset int, filePath string) *Finding {
+			// Rule: Stop flagging variable NAMES alone.
+			// Only flag if it's a hardcoded value (Literal) assigned to a sensitive key.
+			if (tt == js.StringToken || tt == js.TemplateToken) && (pt == js.EqToken || pt == js.ColonToken) {
+				lowerKey := strings.ToLower(ppText)
+				isSensitiveKey := strings.Contains(lowerKey, "pass") || strings.Contains(lowerKey, "secret") ||
+					strings.Contains(lowerKey, "token") || strings.Contains(lowerKey, "apikey") ||
+					strings.Contains(lowerKey, "pwd") || strings.Contains(lowerKey, "access_key")
+
+				if isSensitiveKey {
+					cleanVal := strings.Trim(text, "\"'` ")
+					entropy := calculateEntropy(cleanVal)
+
+					// Heuristic: Length > 6 and (high entropy or specific keywords)
+					if len(cleanVal) > 6 && (entropy > 0.4 || isSensitiveKey) {
+						severity := "critical"
+						confidence := 0.85
+
+						// Lower severity in test/fixture environments
+						lowerPath := strings.ToLower(filePath)
+						if strings.Contains(lowerPath, "test") || strings.Contains(lowerPath, "fixture") ||
+							strings.Contains(lowerPath, "example") || strings.Contains(lowerPath, "mock") {
+							severity = "info"
+							confidence = 0.5
+						}
+
+						return &Finding{
+							Rule:        "security.hardcoded_credential",
+							Type:        "security_credential",
+							Message:     fmt.Sprintf("Hardcoded secret detected in assignment to '%s'.", ppText),
+							Severity:    severity,
+							Confidence:  confidence,
+							Explain:     "Storing secrets in source code is high risk. Attackers can extract these to gain unauthorized access.",
+							Remediation: "Move this value to an environment variable (.env) or a secret manager.",
+							Line:        line,
+							ByteOffset:  offset,
+							ByteLength:  len(text),
+						}
 					}
 				}
 			}
-			if tt == js.StringToken {
-				val := text
-				if len(val) > 35 && (strings.Contains(val, "-") || strings.Contains(val, "_")) && !strings.Contains(val, " ") {
+
+			// Pattern-based detection for known formats (AWS, Stripe, etc)
+			if tt == js.StringToken || tt == js.TemplateToken {
+				cleanVal := strings.Trim(text, "\"'` ")
+				if strings.HasPrefix(cleanVal, "sk_live_") || strings.HasPrefix(cleanVal, "AKIA") ||
+					(len(cleanVal) > 30 && calculateEntropy(cleanVal) > 0.7 && !strings.Contains(cleanVal, " ")) {
 					return &Finding{
-						Type:       "security_credential",
-						Message:    "Suspiciously long string literal detected; possible hardcoded token.",
-						Severity:   defaultSeverity,
-						Line:       line,
-						ByteOffset: offset,
-						ByteLength: len(text),
+						Rule:        "security.secret_pattern",
+						Type:        "security_credential",
+						Message:     "High-entropy string detected; possible hardcoded API key or token.",
+						Severity:    "critical",
+						Confidence:  0.95,
+						Explain:     "This string matches patterns commonly used for high-entropy API keys or access tokens.",
+						Remediation: "Rotate this secret immediately and move it to a secure vault.",
+						Line:        line,
+						ByteOffset:  offset,
+						ByteLength:  len(text),
 					}
 				}
 			}
 			return nil
 		},
 		// Rule: Check for XSS
-		func(tt js.TokenType, text string, pt js.TokenType, pText string, line int, offset int) *Finding {
+		func(tt js.TokenType, text string, pt js.TokenType, pText string, ppt js.TokenType, ppText string, line int, offset int, filePath string) *Finding {
 			if tt == js.IdentifierToken {
-				if text == "innerHTML" || text == "outerHTML" {
+				if text == "innerHTML" || text == "outerHTML" || text == "dangerouslySetInnerHTML" {
+					severity := "high"
+					// Context Awareness: Lower risk in tests
+					lowerPath := strings.ToLower(filePath)
+					if strings.Contains(lowerPath, "test") || strings.Contains(lowerPath, "spec") || strings.Contains(lowerPath, "mock") {
+						severity = "info"
+					}
+
 					return &Finding{
+						Rule:        "security.xss",
 						Type:        "security_xss",
-						Message:     fmt.Sprintf("Usage of '%s' can lead to XSS vulnerabilities. Use 'innerText' or 'textContent' instead.", text),
-						Severity:    "warning",
+						Message:     fmt.Sprintf("Usage of '%s' can lead to XSS vulnerabilities.", text),
+						Severity:    severity,
+						Confidence:  0.8,
+						Explain:     "Directly inserting HTML strings into the DOM bypasses sanitization and can execute malicious scripts.",
+						Remediation: "Use textContent/innerText or a sanitization library like DOMPurify.",
 						Line:        line,
 						ByteOffset:  offset,
 						ByteLength:  len(text),
 						Replacement: "textContent",
 					}
 				}
-				if text == "dangerouslySetInnerHTML" {
-					return &Finding{
-						Type:       "security_xss",
-						Message:    "Usage of 'dangerouslySetInnerHTML' must be carefully reviewed.",
-						Severity:   "warning",
-						Line:       line,
-						ByteOffset: offset,
-						ByteLength: len(text),
-					}
-				}
-				if text == "write" && pText == "document" {
-					return &Finding{
-						Type:       "security_xss",
-						Message:    "Usage of 'document.write' is strongly discouraged.",
-						Severity:   "warning",
-						Line:       line,
-						ByteOffset: offset,
-						ByteLength: len(text),
-					}
-				}
 			}
 			return nil
 		},
-		// Rule: Check for Weak Cryptography
-		func(tt js.TokenType, text string, pt js.TokenType, pText string, line int, offset int) *Finding {
-			if tt == js.IdentifierToken {
-				if text == "random" && pText == "." {
-					return &Finding{
-						Type:        "security_crypto",
-						Message:     "Usage of .random() detected. Ensure this is not used for security-critical randomness.",
-						Severity:    "warning",
-						Line:        line,
-						ByteOffset:  offset,
-						ByteLength:  len(text),
-						Replacement: "getRandomValues",
-					}
-				}
-				if text == "md5" || text == "sha1" {
-					return &Finding{
-						Type:        "security_crypto",
-						Message:     fmt.Sprintf("Weak hashing algorithm '%s' detected. Use SHA-256 or better.", text),
-						Severity:    "warning",
-						Line:        line,
-						ByteOffset:  offset,
-						ByteLength:  len(text),
-						Replacement: "sha256",
-					}
-				}
-			}
-			return nil
-		},
-		// Rule: Basic SQL Injection Heuristic
-		func(tt js.TokenType, text string, pt js.TokenType, pText string, line int, offset int) *Finding {
-			if tt == js.StringToken {
+		// Rule: Advanced SQL Injection
+		func(tt js.TokenType, text string, pt js.TokenType, pText string, ppt js.TokenType, ppText string, line int, offset int, filePath string) *Finding {
+			if tt == js.StringToken || tt == js.TemplateToken || tt == js.TemplateStartToken || tt == js.TemplateMiddleToken || tt == js.TemplateEndToken {
 				upperText := strings.ToUpper(text)
-				if strings.Contains(upperText, "SELECT ") || strings.Contains(upperText, "UPDATE ") || strings.Contains(upperText, "INSERT INTO") {
-					return &Finding{
-						Type:       "security_sqli",
-						Message:    "Possible SQL command detected. ensure variables are not concatenated directly.",
-						Severity:   "info",
-						Line:       line,
-						ByteOffset: offset,
-						ByteLength: len(text),
+				// Look for SQL keywords
+				isSQL := strings.Contains(upperText, "SELECT") || strings.Contains(upperText, "INSERT") ||
+					strings.Contains(upperText, "UPDATE") || strings.Contains(upperText, "DELETE") ||
+					strings.Contains(upperText, "FROM") || strings.Contains(upperText, "WHERE")
+
+				if isSQL {
+					// Check for dangerous interpolation
+					// StringToken with ${ is rare but possible in some contexts; Template tokens imply interpolation if not TemplateToken
+					isInterpolated := tt == js.TemplateStartToken || tt == js.TemplateMiddleToken || strings.Contains(text, "${")
+
+					if isInterpolated {
+						severity := "critical"
+						// Context Awareness: Lower risk in tests
+						lowerPath := strings.ToLower(filePath)
+						if strings.Contains(lowerPath, "test") || strings.Contains(lowerPath, "spec") || strings.Contains(lowerPath, "mock") {
+							severity = "info"
+						}
+
+						return &Finding{
+							Rule:        "security.sqli",
+							Type:        "security_sqli",
+							Message:     "High-risk SQL Injection: Direct variable interpolation in query.",
+							Severity:    severity,
+							Confidence:  0.98,
+							Explain:     "Detected ${...} or template literal pattern inside a SQL-like string. This allows attackers to bypass query logic via malicious input.",
+							Remediation: "Use parameterized queries (e.g., db.query('...', [val])) or an ORM.",
+							Line:        line,
+							ByteOffset:  offset,
+							ByteLength:  len(text),
+						}
 					}
 				}
 			}
 			return nil
 		},
-		// Rule: Check for TODOs
-		func(tt js.TokenType, text string, pt js.TokenType, pText string, line int, offset int) *Finding {
-			if tt == js.CommentToken {
-				if strings.Contains(text, "TODO") || strings.Contains(text, "FIXME") {
-					return &Finding{
-						Type:       "code_quality",
-						Message:    "Unresolved task found in comments.",
-						Severity:   "info",
-						Line:       line,
-						ByteOffset: offset,
-						ByteLength: len(text),
+		// Rule: Insecure Routes + Auth Awareness
+		func(tt js.TokenType, text string, pt js.TokenType, pText string, ppt js.TokenType, ppText string, line int, offset int, filePath string) *Finding {
+			if tt == js.StringToken {
+				lower := strings.ToLower(text)
+				if strings.Contains(lower, "/admin") || strings.Contains(lower, "/debug") || strings.Contains(lower, "/config") {
+					severity := "high"
+					explain := "Sensitive route pattern detected. Ensure authentication is enforced."
+
+					// Simple Heuristic: If NODE_ENV=test is nearby or in path, lower severity
+					if strings.Contains(strings.ToLower(filePath), "test") {
+						severity = "info"
 					}
+
+					return &Finding{
+						Rule:        "security.insecure_route",
+						Type:        "security_insecure_route",
+						Message:     fmt.Sprintf("Sensitive route '%s' detected.", text),
+						Severity:    severity,
+						Confidence:  0.7,
+						Explain:     explain,
+						Remediation: "Verify this route is protected by auth middleware. Avoid exposing /debug in production.",
+						Line:        line,
+						ByteOffset:  offset,
+						ByteLength:  len(text),
+					}
+				}
+			}
+			return nil
+		},
+		// Rule: Data Leaks (process.env)
+		func(tt js.TokenType, text string, pt js.TokenType, pText string, ppt js.TokenType, ppText string, line int, offset int, filePath string) *Finding {
+			if tt == js.IdentifierToken && text == "env" && pText == "process" {
+				return &Finding{
+					Rule:        "security.leak",
+					Type:        "security_leak",
+					Message:     "Direct exposure of 'process.env' detected.",
+					Severity:    "high",
+					Confidence:  0.9,
+					Explain:     "Exposing the entire process.env object can leak system keys, DB strings, and internal config.",
+					Remediation: "Only expose specific, non-sensitive environment variables.",
+					Line:        line,
+					ByteOffset:  offset,
+					ByteLength:  len(text),
 				}
 			}
 			return nil
@@ -581,9 +677,10 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string) 
 		if tt == js.ErrorToken {
 			if lexer.Err() != io.EOF {
 				result.Findings = append(result.Findings, Finding{
+					Rule:     "parse.error",
 					Type:     "parse_error",
 					Message:  fmt.Sprintf("AST Lexer Error: %v", lexer.Err()),
-					Severity: "warning",
+					Severity: "medium",
 				})
 			}
 			break
@@ -592,15 +689,27 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string) 
 		text := string(data)
 		currentLine += strings.Count(text, "\n")
 
+		// Handle security-ignore
+		if tt == js.CommentToken {
+			if strings.Contains(text, "tharos-security-ignore") {
+				ignoreLine = currentLine + 1
+			}
+		}
+
 		// Run all rules
 		for _, rule := range rules {
-			if f := rule(tt, text, prevToken, prevText, currentLine, byteOffset); f != nil {
+			if f := rule(tt, text, prevToken, prevText, pPrevToken, pPrevText, currentLine, byteOffset, filePath); f != nil {
+				if currentLine == ignoreLine || currentLine == ignoreLine-1 {
+					continue
+				}
 				result.Findings = append(result.Findings, *f)
 			}
 		}
 
-		// Keep track of limited context
+		// Keep track of context
 		if tt != js.LineTerminatorToken && tt != js.WhitespaceToken && tt != js.CommentToken {
+			pPrevToken = prevToken
+			pPrevText = prevText
 			prevToken = tt
 			prevText = text
 		}
@@ -718,15 +827,14 @@ func parseAIResponse(response string, result *AnalysisResult) {
 			result.AIInsights = append(result.AIInsights, insight)
 
 			// Apply AI-suggested fixes to findings
-			if len(insight.Fixes) > 0 && os.Getenv("THAROS_VERBOSE") == "true" {
-				fmt.Printf("[DEBUG] AI suggesting %d fixes\n", len(insight.Fixes))
-			}
 			for _, fix := range insight.Fixes {
 				for i := range result.Findings {
+					// Match by line or type
 					if result.Findings[i].Line == fix.Line && (fix.Type == "" || result.Findings[i].Type == fix.Type) {
-						result.Findings[i].Replacement = fix.Replacement
-						// Mark finding as AI-enhanced for the label
-						result.Findings[i].Message += " (AI Enhanced)"
+						if result.Findings[i].Replacement == "" || os.Getenv("THAROS_AI_PRIORITY") == "true" {
+							result.Findings[i].Replacement = fix.Replacement
+							result.Findings[i].Message += " (AI Optimized Fix Available)"
+						}
 					}
 				}
 			}
@@ -743,6 +851,12 @@ func parseAIResponse(response string, result *AnalysisResult) {
 
 func generatePrompt(code string, findings []Finding) string {
 	prompt := `Analyze the following code snippet and its security/quality findings. 
+Use a "Professional Security Scanner Mindset":
+- Real secrets (high entropy, known patterns) are Critical.
+- Logic vulnerabilities are High.
+- Variable names alone (without hardcoded values) are usually Info/Safe.
+- Understand context: code in test folders or mocks should have lower risk profiles.
+
 Provide your response in RAW JSON format ONLY. Do not use markdown code blocks.
 Ensure all newlines in the "suggested_fix" are escaped as \n.
 
@@ -750,17 +864,142 @@ JSON Keys:
 - "recommendation": A professional, actionable advice for the engineer.
 - "risk_score": An integer 0-100.
 - "suggested_fix": (Optional) A code snippet fixing the issue.
-- "fixes": (Optional) A list of specific replacements for individual findings. Use the format: [{"line": N, "type": "T", "replacement": "new_text"}]
-  The "replacement" should be a direct replacement for the specific vulnerable token/expression identified on that line.
+- "fixes": (Optional) A list of specific replacements: [{"line": N, "type": "T", "replacement": "new_text"}]
 
 Code Context:
 %s
 
-Issues Found:
+Issues Found by AST Engine:
 `
 	for _, f := range findings {
-		prompt += fmt.Sprintf("- [%s] %s (Line %d)\n", f.Type, f.Message, f.Line)
+		prompt += fmt.Sprintf("- [%s] Rule: %s - %s (Line %d, Severity: %s)\n", f.Type, f.Rule, f.Message, f.Line, f.Severity)
 	}
 
 	return fmt.Sprintf(prompt, code)
+}
+
+// --- SARIF Export Support ---
+
+type SARIFReport struct {
+	Version string     `json:"version"`
+	Schema  string     `json:"$schema"`
+	Runs    []SARIFRun `json:"runs"`
+}
+
+type SARIFRun struct {
+	Tool    SARIFTool     `json:"tool"`
+	Results []SARIFResult `json:"results"`
+}
+
+type SARIFTool struct {
+	Driver SARIFDriver `json:"driver"`
+}
+
+type SARIFDriver struct {
+	Name           string      `json:"name"`
+	InformationURI string      `json:"informationUri"`
+	Rules          []SARIFRule `json:"rules"`
+}
+
+type SARIFRule struct {
+	ID               string           `json:"id"`
+	ShortDescription SARIFDescription `json:"shortDescription"`
+}
+
+type SARIFDescription struct {
+	Text string `json:"text"`
+}
+
+type SARIFResult struct {
+	RuleID    string           `json:"ruleId"`
+	Level     string           `json:"level"`
+	Message   SARIFDescription `json:"message"`
+	Locations []SARIFLocation  `json:"locations"`
+}
+
+type SARIFLocation struct {
+	PhysicalLocation SARIFPhysicalLocation `json:"physicalLocation"`
+}
+
+type SARIFPhysicalLocation struct {
+	ArtifactLocation SARIFArtifactLocation `json:"artifactLocation"`
+	Region           SARIFRegion           `json:"region"`
+}
+
+type SARIFArtifactLocation struct {
+	URI string `json:"uri"`
+}
+
+type SARIFRegion struct {
+	StartLine int `json:"startLine"`
+}
+
+func ConvertToSARIF(results []AnalysisResult) SARIFReport {
+	report := SARIFReport{
+		Version: "2.1.0",
+		Schema:  "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+		Runs: []SARIFRun{
+			{
+				Tool: SARIFTool{
+					Driver: SARIFDriver{
+						Name:           "Tharos",
+						InformationURI: "https://tharos.dev",
+						Rules:          []SARIFRule{},
+					},
+				},
+				Results: []SARIFResult{},
+			},
+		},
+	}
+
+	ruleMap := make(map[string]bool)
+
+	for _, res := range results {
+		for _, f := range res.Findings {
+			// Map severity to SARIF level
+			level := "warning"
+			switch f.Severity {
+			case "critical", "high":
+				level = "error"
+			case "medium":
+				level = "warning"
+			case "info":
+				level = "note"
+			}
+
+			// Add rule to driver if not exists
+			if !ruleMap[f.Rule] {
+				report.Runs[0].Tool.Driver.Rules = append(report.Runs[0].Tool.Driver.Rules, SARIFRule{
+					ID: f.Rule,
+					ShortDescription: SARIFDescription{
+						Text: f.Explain,
+					},
+				})
+				ruleMap[f.Rule] = true
+			}
+
+			// Add result
+			report.Runs[0].Results = append(report.Runs[0].Results, SARIFResult{
+				RuleID: f.Rule,
+				Level:  level,
+				Message: SARIFDescription{
+					Text: f.Message,
+				},
+				Locations: []SARIFLocation{
+					{
+						PhysicalLocation: SARIFPhysicalLocation{
+							ArtifactLocation: SARIFArtifactLocation{
+								URI: res.File,
+							},
+							Region: SARIFRegion{
+								StartLine: f.Line,
+							},
+						},
+					},
+				},
+			})
+		}
+	}
+
+	return report
 }

@@ -1,0 +1,91 @@
+---
+title: Vulnerability Examples
+description: Real-world examples of vulnerabilities Tharos can detect and fix.
+---
+
+# Vulnerability Examples
+
+Tharos is designed to catch a wide range of security flaws in modern web applications. Below are examples of common vulnerabilities and how Tharos flags them.
+
+## 1. SQL Injection (Template Literals)
+Tharos identifies direct variable interpolation in SQL query strings, which is a major security risk.
+
+```javascript title="insecure.js"
+// ❌ High-risk SQL Injection
+const query = `
+  SELECT * FROM users 
+  WHERE email = '${email}' 
+  AND password = '${password}'
+`;
+
+db.query(query, (err, results) => {
+  // ...
+});
+```
+
+**Tharos Rule**: `security_sqli`
+**Severity**: `Blocker`
+**AI Recommendation**: Use parameterized queries or an ORM to prevent direct interpolation.
+
+---
+
+## 2. Hardcoded Credentials
+Directly assigning sensitive values like passwords or API keys to object properties is a common mistake.
+
+```javascript title="db.js"
+// ❌ Hardcoded DB credentials
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "root123", // Flagged!
+  database: "test_db"
+});
+```
+
+**Tharos Rule**: `security_credential`
+**Severity**: `Blocker`
+**AI Recommendation**: Use `process.env.DB_PASSWORD` instead of a hardcoded string.
+
+---
+
+## 3. Environment Variable Exposure
+Leaking your entire environment to a client-side response can expose sensitive system configuration.
+
+```javascript title="app.js"
+app.get("/debug", (req, res) => {
+  res.json({
+    env: process.env, // ❌ Potential data leak
+  });
+});
+```
+
+**Tharos Rule**: `security_leak`
+**Severity**: `Blocker`
+**AI Recommendation**: Only expose specific, non-sensitive keys to the client.
+
+---
+
+## 4. Insecure Express Routes
+Administrative or debugging routes should never be exposed without authentication.
+
+```javascript title="routes.js"
+// ⚠️ Sensitive route pattern detected
+app.get("/admin", (req, res) => {
+  res.send("Welcome Admin");
+});
+```
+
+**Tharos Rule**: `security_insecure_route`
+**Severity**: `Warning`
+**AI Recommendation**: Ensure this route is protected by an authentication middleware (e.g., Passport or custom JWT check).
+
+---
+
+## Applying Fixes
+You can use the Tharos CLI to automatically remediate many of these issues:
+
+```bash
+tharos analyze --fix src/vulnerable.js
+```
+
+Or use the **Playground** to see the "Magic Fix" in action instantly.

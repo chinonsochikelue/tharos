@@ -1,0 +1,58 @@
+---
+title: CLI Command Reference
+description: Complete reference for the Tharos command-line interface.
+---
+
+# Tharos CLI Reference
+
+Tharos provides a unified CLI for managing security policies, running scans, and integrating with CI/CD pipelines.
+
+## Global Options
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `-c, --config` | Path to config file | `./tharos.yaml` |
+| `--json` | Output results in JSON format | `false` |
+| `-f, --format` | Output format (`text`, `json`, `sarif`) | `text` |
+| `--verbose` | Enable verbose logging | `false` |
+
+## commands
+
+### `tharos init`
+
+Initialize a new Tharos configuration in the current directory.
+
+```bash
+tharos init
+```
+
+This creates a `tharos.yaml` file and sets up git hooks in `.git/hooks`.
+
+### `tharos check`
+
+Run a security check on the current project. By default, it checks all staged files if inside a git repo.
+
+```bash
+tharos check [options]
+```
+
+**Options:**
+- `--all`: Check all files in the project, not just staged ones.
+- `--fix`: Automatically apply "Magic Fixes" where possible.
+
+### `tharos analyze <path>`
+
+Analyze a specific file or directory.
+
+```bash
+tharos analyze src/server.js
+tharos analyze . --format sarif > results.sarif
+```
+
+### `tharos version`
+
+Print the current version of Tharos.
+
+```bash
+tharos version
+```
