@@ -1,6 +1,6 @@
 {
   "name": "@collabchron/tharos",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Tharos: Intelligent, Unbreakable Code Policy Enforcement",
   "keywords": [
     "security",
@@ -34,6 +34,7 @@
     "build:binary": "node scripts/build-binary.cjs",
     "start": "node --loader ts-node/esm src/index.ts",
     "dev": "node --loader ts-node/esm src/index.ts",
+    "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {},

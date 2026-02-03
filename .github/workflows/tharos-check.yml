@@ -27,7 +27,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Tharos
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Tharos
+        run: npm run build
+
+      - name: Install Tharos Globally
         run: npm install -g .
 
       - name: Run Tharos Sync
