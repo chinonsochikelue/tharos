@@ -89,7 +89,7 @@ npm install -g tharos
 
 ### From Source
 ```bash
-git clone https://github.com/yourusername/tharos.git
+git clone https://github.com/chinonsochikelue/tharos.git
 cd tharos
 npm install
 npm run build
@@ -269,7 +269,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 ### Development Setup
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/tharos.git
+git clone https://github.com/chinonsochikelue/tharos.git
 cd tharos
 
 # Install dependencies
@@ -364,8 +364,8 @@ MIT License - see [LICENSE](LICENSE) for details
 ## 💬 Support
 
 - **Documentation**: [https://tharos.dev](https://tharos.dev)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/tharos/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/tharos/discussions)
+- **Issues**: [GitHub Issues](https://github.com/chinonsochikelue/tharos/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/chinonsochikelue/tharos/discussions)
 - **Discord**: [Join our community](https://discord.gg/tharos)
 
 ---

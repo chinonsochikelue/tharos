@@ -37,7 +37,7 @@ export const linkItems: LinkItemType[] = [
   },
   {
     type: 'icon',
-    url: 'https://github.com/tharos-security/tharos',
+    url: 'https://github.com/chinonsochikelue/tharos',
     text: 'Github',
     icon: (
       <svg fill='currentColor' role='img' viewBox='0 0 24 24'>
