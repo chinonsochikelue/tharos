@@ -13,6 +13,19 @@ At the heart of Tharos is the `go-core` engine. This engine handles:
 *   **Semantic Scoring**: Analyzing code structure to detect patterns like logic duplication and security vulnerabilities.
 *   **Tamper Evidence**: Using cryptographic signatures to ensure that hooks haven't been modified locally.
 
+### Built-in Security Rules
+
+The Go Core currently enforces the following local security policies:
+
+| Category | Detection Rule | Description |
+| :--- | :--- | :--- |
+| **XSS Prevention** | `innerHTML`, `outerHTML` | Flagged as dangerousDOM sink. |
+| **XSS Prevention** | `dangerouslySetInnerHTML` | React specific XSS warning. |
+| **XSS Prevention** | `document.write` | Legacy XSS vector detection. |
+| **Cryptography** | `Math.random()` | Insecure randomness detection. |
+| **Cryptography** | `md5`, `sha1` | Weak hashing algorithm detection. |
+| **Injection** | `SQL Injection` | Heuristic detection of concatenated SQL strings. |
+
 ## AI Layer
 
 Tharos integrates with local and cloud-based LLMs to provide intelligent feedback during the commit process.

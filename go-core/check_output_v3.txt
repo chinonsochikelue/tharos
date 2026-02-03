@@ -1,0 +1,78 @@
+{
+  "file": "..\\test-bad-code.ts",
+  "findings": [
+    {
+      "type": "security_xss",
+      "message": "Usage of 'innerHTML' can lead to XSS vulnerabilities. Use 'innerText' or 'textContent' instead.",
+      "severity": "warning",
+      "line": 3
+    },
+    {
+      "type": "security_xss",
+      "message": "Usage of 'outerHTML' can lead to XSS vulnerabilities. Use 'innerText' or 'textContent' instead.",
+      "severity": "warning",
+      "line": 4
+    },
+    {
+      "type": "security_xss",
+      "message": "Usage of 'dangerouslySetInnerHTML' must be carefully reviewed.",
+      "severity": "warning",
+      "line": 9
+    },
+    {
+      "type": "security_crypto",
+      "message": "Usage of .random() detected. Ensure this is not used for security-critical randomness.",
+      "severity": "warning",
+      "line": 13
+    },
+    {
+      "type": "security_crypto",
+      "message": "Weak hashing algorithm 'md5' detected. Use SHA-256 or better.",
+      "severity": "warning",
+      "line": 14
+    },
+    {
+      "type": "security_credential",
+      "message": "Identifier 'password' might contain sensitive data.",
+      "severity": "warning",
+      "line": 14
+    },
+    {
+      "type": "security_crypto",
+      "message": "Weak hashing algorithm 'sha1' detected. Use SHA-256 or better.",
+      "severity": "warning",
+      "line": 15
+    },
+    {
+      "type": "security_sqli",
+      "message": "Possible SQL command detected. ensure variables are not concatenated directly.",
+      "severity": "info",
+      "line": 18
+    },
+    {
+      "type": "security_sqli",
+      "message": "Possible SQL command detected. ensure variables are not concatenated directly.",
+      "severity": "info",
+      "line": 19
+    },
+    {
+      "type": "security_credential",
+      "message": "Suspiciously long string literal detected; possible hardcoded token.",
+      "severity": "warning",
+      "line": 22
+    },
+    {
+      "type": "code_quality",
+      "message": "Unresolved task found in comments.",
+      "severity": "info",
+      "line": 24
+    },
+    {
+      "type": "code_quality",
+      "message": "Unresolved task found in comments.",
+      "severity": "info",
+      "line": 25
+    }
+  ],
+  "ai_insights": []
+}

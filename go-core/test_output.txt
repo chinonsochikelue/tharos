@@ -1,0 +1,27 @@
+[1m[36m[THAROS SECURITY SCAN][0m
+
+­ƒôè [1mScanned:[0m 1 files in 533┬Ás
+ÔÜá´©Å  [1mIssues:[0m 12 vulnerabilities in 1 files
+
+# ­ƒº¬ Markdown Test                                                          
+                                                                              
+  This is **bold**, *italic*, and a code block.                               
+                                                                              
+    func test() {                                                             
+        fmt.Println("Hello World")                                            
+    }
+
+[1m[36m..\test-bad-code.ts[0m
+  [33mÔÜá´©Å  Line 3:[0m Usage of 'innerHTML' can lead to XSS vulnerabilities. Use 'innerText' or 'textContent' instead.
+  [33mÔÜá´©Å  Line 4:[0m Usage of 'outerHTML' can lead to XSS vulnerabilities. Use 'innerText' or 'textContent' instead.
+  [33mÔÜá´©Å  Line 9:[0m Usage of 'dangerouslySetInnerHTML' must be carefully reviewed.
+  [33mÔÜá´©Å  Line 13:[0m Usage of .random() detected. Ensure this is not used for security-critical randomness.
+  [33mÔÜá´©Å  Line 14:[0m Weak hashing algorithm 'md5' detected. Use SHA-256 or better.
+  [33mÔÜá´©Å  Line 14:[0m Identifier 'password' might contain sensitive data.
+  [33mÔÜá´©Å  Line 15:[0m Weak hashing algorithm 'sha1' detected. Use SHA-256 or better.
+  [0mÔä╣´©Å  Line 18:[0m Possible SQL command detected. ensure variables are not concatenated directly.
+  [0mÔä╣´©Å  Line 19:[0m Possible SQL command detected. ensure variables are not concatenated directly.
+  [33mÔÜá´©Å  Line 22:[0m Suspiciously long string literal detected; possible hardcoded token.
+  [0mÔä╣´©Å  Line 24:[0m Unresolved task found in comments.
+  [0mÔä╣´©Å  Line 25:[0m Unresolved task found in comments.
+

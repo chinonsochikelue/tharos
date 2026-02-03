@@ -1,0 +1,88 @@
+{
+  "results": [
+    {
+      "file": "test-bad-code.ts",
+      "findings": [
+        {
+          "type": "security_xss",
+          "message": "Usage of 'dangerouslySetInnerHTML' must be carefully reviewed.",
+          "severity": "warning",
+          "line": 9,
+          "byte_offset": 312,
+          "byte_length": 23
+        },
+        {
+          "type": "security_credential",
+          "message": "Identifier 'randomToken' might contain sensitive data. Ensure it is not a hardcoded secret.",
+          "severity": "warning",
+          "line": 13,
+          "byte_offset": 429,
+          "byte_length": 11
+        },
+        {
+          "type": "security_credential",
+          "message": "Identifier 'password' might contain sensitive data. Ensure it is not a hardcoded secret.",
+          "severity": "warning",
+          "line": 14,
+          "byte_offset": 526,
+          "byte_length": 8
+        },
+        {
+          "type": "security_sqli",
+          "message": "Possible SQL command detected. ensure variables are not concatenated directly.",
+          "severity": "info",
+          "line": 18,
+          "byte_offset": 693,
+          "byte_length": 33
+        },
+        {
+          "type": "security_sqli",
+          "message": "Possible SQL command detected. ensure variables are not concatenated directly.",
+          "severity": "info",
+          "line": 19,
+          "byte_offset": 787,
+          "byte_length": 27
+        },
+        {
+          "type": "security_credential",
+          "message": "Identifier 'apiKey' might contain sensitive data. Ensure it is not a hardcoded secret.",
+          "severity": "warning",
+          "line": 22,
+          "byte_offset": 912,
+          "byte_length": 6
+        },
+        {
+          "type": "security_credential",
+          "message": "Suspiciously long string literal detected; possible hardcoded token.",
+          "severity": "block",
+          "line": 22,
+          "byte_offset": 921,
+          "byte_length": 37
+        },
+        {
+          "type": "code_quality",
+          "message": "Unresolved task found in comments.",
+          "severity": "info",
+          "line": 24,
+          "byte_offset": 963,
+          "byte_length": 25
+        },
+        {
+          "type": "code_quality",
+          "message": "Unresolved task found in comments.",
+          "severity": "info",
+          "line": 25,
+          "byte_offset": 990,
+          "byte_length": 31
+        }
+      ],
+      "ai_insights": []
+    }
+  ],
+  "summary": {
+    "total_files": 1,
+    "vulnerabilities": 9,
+    "duration": "544.1µs",
+    "duration_ms": 0
+  }
+}

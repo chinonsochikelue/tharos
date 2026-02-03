@@ -1,0 +1,105 @@
+{
+  "results": [
+    {
+      "file": "..\\test-bad-code.ts",
+      "findings": [
+        {
+          "type": "security_xss",
+          "message": "Usage of 'innerHTML' can lead to XSS vulnerabilities. Use 'innerText' or 'textContent' instead.",
+          "severity": "warning",
+          "line": 3,
+          "byte_offset": 68,
+          "byte_length": 9,
+          "replacement": "textContent"
+        },
+        {
+          "type": "security_xss",
+          "message": "Usage of 'outerHTML' can lead to XSS vulnerabilities. Use 'innerText' or 'textContent' instead.",
+          "severity": "warning",
+          "line": 4,
+          "byte_offset": 128,
+          "byte_length": 9,
+          "replacement": "textContent"
+        },
+        {
+          "type": "security_xss",
+          "message": "Usage of 'dangerouslySetInnerHTML' must be carefully reviewed.",
+          "severity": "warning",
+          "line": 9,
+          "byte_offset": 308
+        },
+        {
+          "type": "security_crypto",
+          "message": "Usage of .random() detected. Ensure this is not used for security-critical randomness.",
+          "severity": "warning",
+          "line": 13,
+          "byte_offset": 444,
+          "replacement": "crypto.getRandomValues()"
+        },
+        {
+          "type": "security_crypto",
+          "message": "Weak hashing algorithm 'md5' detected. Use SHA-256 or better.",
+          "severity": "warning",
+          "line": 14,
+          "byte_offset": 506
+        },
+        {
+          "type": "security_credential",
+          "message": "Identifier 'password' might contain sensitive data.",
+          "severity": "warning",
+          "line": 14,
+          "byte_offset": 510
+        },
+        {
+          "type": "security_crypto",
+          "message": "Weak hashing algorithm 'sha1' detected. Use SHA-256 or better.",
+          "severity": "warning",
+          "line": 15,
+          "byte_offset": 583
+        },
+        {
+          "type": "security_sqli",
+          "message": "Possible SQL command detected. ensure variables are not concatenated directly.",
+          "severity": "info",
+          "line": 18,
+          "byte_offset": 675
+        },
+        {
+          "type": "security_sqli",
+          "message": "Possible SQL command detected. ensure variables are not concatenated directly.",
+          "severity": "info",
+          "line": 19,
+          "byte_offset": 769
+        },
+        {
+          "type": "security_credential",
+          "message": "Suspiciously long string literal detected; possible hardcoded token.",
+          "severity": "warning",
+          "line": 22,
+          "byte_offset": 903
+        },
+        {
+          "type": "code_quality",
+          "message": "Unresolved task found in comments.",
+          "severity": "info",
+          "line": 24,
+          "byte_offset": 945
+        },
+        {
+          "type": "code_quality",
+          "message": "Unresolved task found in comments.",
+          "severity": "info",
+          "line": 25,
+          "byte_offset": 972
+        }
+      ],
+      "ai_insights": []
+    }
+  ],
+  "summary": {
+    "total_files": 1,
+    "vulnerabilities": 12,
+    "duration": "506.8µs",
+    "duration_ms": 0
+  }
+}

@@ -115,17 +115,38 @@ cp node_modules/tharos/policies/soc2.yaml tharos.yaml
 cp node_modules/tharos/policies/gdpr.yaml tharos.yaml
 ```
 
-### 3. Set Up AI (Optional)
+### 3. Set Up AI Providers (Optional but Recommended)
+
+Tharos works without AI but provides **deeper insights** with it enabled. Choose either provider (both have free tiers):
+
+#### 🧠 Option 1: Google Gemini (Recommended)
+**Best for:** Powerful analysis, generous free tier
+
 ```bash
-# Option 1: Use Groq (recommended)
-export GROQ_API_KEY="your-groq-key"
+# Get your API key from https://makersuite.google.com/app/apikey
+export GEMINI_API_KEY="your-gemini-key-here"
 
-# Option 2: Use Gemini
-export GEMINI_API_KEY="your-gemini-key"
-
-# Option 3: Use local Ollama
-ollama serve
+# Or on Windows PowerShell:
+$env:GEMINI_API_KEY="your-gemini-key-here"
 ```
+
+#### ⚡ Option 2: Groq (Fast & Free)
+**Best for:** Speed, low latency
+
+```bash
+# Get your free API key from https://console.groq.com
+export GROQ_API_KEY="your-groq-key-here"
+
+# Or on Windows PowerShell:
+$env:GROQ_API_KEY="your-groq-key-here"
+```
+
+**Check your setup:**
+```bash
+tharos core setup
+```
+
+
 
 ### 4. Run Analysis
 ```bash

@@ -1,0 +1,59 @@
+{
+  "results": [
+    {
+      "file": "test-multi-vuln.ts",
+      "findings": [
+        {
+          "type": "security_xss",
+          "message": "Usage of 'innerHTML' can lead to XSS vulnerabilities. Use 'innerText' or 'textContent' instead.",
+          "severity": "warning",
+          "line": 2,
+          "byte_offset": 39,
+          "byte_length": 9,
+          "replacement": "textContent"
+        },
+        {
+          "type": "security_crypto",
+          "message": "Weak hashing algorithm 'md5' detected. Use SHA-256 or better.",
+          "severity": "warning",
+          "line": 4,
+          "byte_offset": 92,
+          "byte_length": 3,
+          "replacement": "sha256"
+        },
+        {
+          "type": "security_crypto",
+          "message": "Usage of .random() detected. Ensure this is not used for security-critical randomness.",
+          "severity": "warning",
+          "line": 5,
+          "byte_offset": 128,
+          "byte_length": 6,
+          "replacement": "getRandomValues"
+        },
+        {
+          "type": "security_sqli",
+          "message": "Possible SQL command detected. ensure variables are not concatenated directly.",
+          "severity": "info",
+          "line": 7,
+          "byte_offset": 167,
+          "byte_length": 33
+        },
+        {
+          "type": "code_quality",
+          "message": "Unresolved task found in comments.",
+          "severity": "info",
+          "line": 9,
+          "byte_offset": 220,
+          "byte_length": 17
+        }
+      ],
+      "ai_insights": []
+    }
+  ],
+  "summary": {
+    "total_files": 1,
+    "vulnerabilities": 5,
+    "duration": "415.3µs",
+    "duration_ms": 0
+  }
+}
