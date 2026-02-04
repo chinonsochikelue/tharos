@@ -84,7 +84,7 @@ export const metadata = createMetadata({
     siteName: "Tharos Security",
     images: [
       {
-        url: "/og-image.png",
+        url: "/banner_logo.png",
         width: 1200,
         height: 630,
         alt: "Tharos Security Engine",
@@ -97,7 +97,7 @@ export const metadata = createMetadata({
   twitter: {
     card: "summary_large_image",
     site: "@tharos_security",
-    creator: "@tharos_security",
+    creator: "@_fluantix",
     title: "Tharos - AI-Powered Security Analysis",
     description: "Catch vulnerabilities before they reach production. Deep AST analysis + AI semantic insights.",
     images: ["/twitter-card.png"],
@@ -137,7 +137,6 @@ export const metadata = createMetadata({
 
   // Verification and ownership
   verification: {
-    google: "",
   },
 
   // Robots directives
@@ -189,7 +188,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         {/* Additional SEO meta tags */}
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
-
+        <meta name="msvalidate.01" content="4BB8182AAAC464C950E2F99FE3546368" />
+        
         {/* Favicons and app icons */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
 
