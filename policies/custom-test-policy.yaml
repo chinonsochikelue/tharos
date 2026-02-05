@@ -1,0 +1,5 @@
+security:
+  rules:
+    - pattern: "DANGEROUS_POL_FINDING"
+      message: "External policy violation detected!"
+      severity: "critical"

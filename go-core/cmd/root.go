@@ -15,6 +15,8 @@ var (
 	aiEnabled    bool
 	fixMode      bool
 	verbose      bool
+	policyPath   string
+	policyDir    string
 )
 
 var rootCmd = &cobra.Command{

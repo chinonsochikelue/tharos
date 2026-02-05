@@ -16,6 +16,23 @@ The core of Tharos is a high-performance lexer and parser written in Go. This en
 - **XSS Vulnerabilities**: Flags dangerous DOM sinks like `innerHTML`, `document.write`, and React's `dangerouslySetInnerHTML`.
 - **Insecure Routes**: Proactively identifies sensitive administrative or debug endpoints that lack authentication.
 
+## Custom Security Rules (Regex-Based)
+While Tharos comes with powerful built-in AST rules, you can extend its capabilities using custom regex patterns in your `tharos.yaml` config. This allows you to enforce project-specific security policies.
+
+```yaml
+security:
+  rules:
+    - pattern: "eval\\("
+      message: "Code injection risk: eval() detected"
+      severity: "block"
+    - pattern: "(?i)(api[_-]?key|secret).*=.*['\"].*['\"]"
+      message: "Potential hardcoded credential detected"
+      severity: "block"
+```
+
+These rules run in parallel with the AST engine and support the `// tharos-security-ignore` directive for easy suppression.
+
+
 ## Tharos vs. General Scanners (Semgrep, etc.)
 
 While tools like Semgrep are excellent for general-purpose static analysis and CI/CD linting, Tharos is purpose-built as a **Git Hook Security Scanner**. 
@@ -40,7 +57,28 @@ Integrate Tharos into GitHub Advanced Security, GitLab, or any SARIF-compatible 
 tharos analyze . --format sarif > results.sarif
 ```
 
+## Smart Risk Scoring
+Tharos uses AI to calculate a **Risk Score (0-100)** for every finding. This allows you to differentiate between a minor code smell and a mission-critical vulnerability.
+
+### Configuration
+You can control which AI insights are surfaced by setting the `min_risk_score` in your `tharos.yaml`:
+
+```yaml
+ai:
+  min_risk_score: 60 # Only show insights with risk score >= 60
+```
+
+This ensures that your development workflow remains focused on the most impactful security issues.
+
+## Premium CLI Dashboard
+Tharos features a high-fidelity terminal UI designed for high-stakes decision making. 
+
+- **Structured Tables**: Clear separation of severity, location, and findings.
+- **Commit Verdict**: A definitive **PASS** or **BLOCK** banner based on your project's security policy.
+- **AI Context**: Beautifully rendered markdown recommendations and suggested fixes directly in your terminal.
+
 ## AI Semantic Analysis
+
 While the AST engine catches obvious patterns, the AI engine understands context. By leveraging models like **Gemini 1.5 Pro** and **Llama 3 (via Groq)**, Tharos can:
 
 1. **Calculate Risk Scores**: Goes beyond "True/False" to provide a confidence level and risk probability for every finding.
@@ -58,9 +96,9 @@ tharos fix src/app/login.ts
 In the **Playground**, you can click the **MAGIC FIX** button to see this technology in action in real-time.
 
 ## Supported Languages
-Currently, Tharos provides deep support for:
-- **JavaScript/TypeScript** (Full AST analysis)
-- **Node.js/Express.js** (Specialized security rules)
-- **React** (Component-level security checks)
+Tharos provides comprehensive semantic analysis for:
+- **Go**: Native AST parsing for SQL injection (`fmt.Sprintf`) and dangerous concurrency.
+- **Python**: Deep security scanning for shell injection (`os.system`, `subprocess`) and command execution.
+- **TypeScript/JavaScript**: Full AST coverage for React, Node.js, and general web APIs.
+- **Next.js**: Framework-aware security gating.
 
-*Support for Python, Go, and Rust is currently in beta.*

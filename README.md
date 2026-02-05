@@ -19,15 +19,17 @@ Tharos is a specialized git commit hook scanner that acts as an intelligent gate
 ### 🛡️ Core: Intelligent Git Hooks
 Tharos's primary interface is your git workflow. It provides automated security gating that prevents high-risk code from ever leaving your machine.
 - **Pre-commit Gating**: Block commits containing secrets, SQLi, or high-risk vulnerabilities.
-- **Self-Healing Hooks**: Automatically set up and repair hooks with a single command.
-- **Deterrent Mode**: Configurable severity levels to warn or block based on risk.
+- **Polyglot AST Support**: Native semantic analysis for **TypeScript, JavaScript, Go, and Python**.
+- **Policy-as-Code**: Load organizational security policies from YAML (SOC2, GDPR, OWASP).
+- **Self-Healing Hooks**: Automatically manages and repairs git hook integrity.
 
 ### 🔒 AI-Powered Security Analysis
 - **AST-Based Detection**: Fast, accurate pattern matching for common vulnerabilities (SQLi, XSS, Secrets).
 - **Scanner Mindset**: Context-aware analysis that ignores test files and mock data.
-- **Weighted Gating**: Intelligent commit blocking based on cumulative finding severity.
 - **AI Semantic Analysis**: Deep understanding of code context and intent using Gemini/Groq.
+- **Risk Scoring**: Intelligent commit blocking based on cumulative finding severity and AI risk scores.
 - **Suggested Fixes**: AI-generated code snippets to resolve issues instantly at commit time.
+
 
 
 #### 4. GitHub Actions
@@ -50,7 +52,7 @@ Automatic fallback chain:
 
 ### NPM (Recommended)
 ```bash
-npm install -g tharos
+npm install -g @collabchron/tharos
 ```
 
 ### From Source
@@ -117,7 +119,7 @@ $env:GROQ_API_KEY="your-groq-key-here"
 
 **Check your setup:**
 ```bash
-tharos core setup
+tharos setup
 ```
 
 
@@ -141,27 +143,23 @@ tharos analyze .
 name: "My Project Security Policy"
 version: "1.0.0"
 
-# Severity levels: block, warning, info
-default_severity: "warning"
+# Built-in AST analysis is ALWAYS enabled for TS, JS, Go, and Python.
+# You can add custom regex patterns under the security section.
 
-# Security rules
 security:
   enabled: true
   rules:
-    - pattern: "eval\\("
-      message: "Code injection risk: eval() detected"
-      severity: "block"
-    
-    - pattern: "(?i)(api[_-]?key|secret).*=.*['\"].*['\"]"
-      message: "Hardcoded credentials detected"
-      severity: "block"
+    - pattern: "DANGEROUS_INTERNAL_API"
+      message: "Internal API bypass detected"
+      severity: "critical"
 
 # AI configuration
 ai:
   enabled: true
-  provider: "auto"  # auto, ollama, gemini, groq
-  min_risk_score: 60  # Only show insights for risks >= 60
+  provider: "auto"     # auto, ollama, gemini, groq
+  min_risk_score: 60   # Filter noise; only show high-confidence AI insights
 ```
+
 
 ## 🔧 VSCode Extension
 
@@ -255,7 +253,7 @@ npm test
 
 ## 📖 Documentation
 
-Full documentation available at [https://tharos.dev](https://tharos.dev)
+Full documentation available at [https://tharos.vercel.app](https://tharos.dev)
 
 - [Getting Started Guide](https://tharos.dev/docs/getting-started)
 - [Policy Configuration](https://tharos.dev/docs/policies)

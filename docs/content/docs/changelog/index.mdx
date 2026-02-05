@@ -5,7 +5,21 @@ icon: List
 ---
 
 <Updates>
+  <Update label="February 2026">
+    ### The Intelligent Gatekeeper Update
+
+    * **Polyglot AST Support**: Expanded semantic analysis to include native **Go** (via `go/ast`) and **Python**, detecting complex SQL injection and command injection patterns.
+    * **Policy-as-Code Loader**: Introduced dynamic policy injection from YAML files in the `policies/` directory or via the new `--policy` flag.
+    * **Premium CLI Dashboard**: Introduced a high-fidelity terminal UI with structured findings tables and a definitive **COMMIT VERDICT** (Pass/Block) banner.
+    * **Data-Driven Security Rules**: You can now define custom regex-based security patterns directly in `tharos.yaml` to catch project-specific vulnerabilities.
+    * **Smart Risk Scoring**: Integrated `min_risk_score` configuration to filter AI-generated insights, ensuring you only see the most actionable security intelligence.
+    * **Self-Healing Git Hooks**: Launched `tharos sync` and background audit systems that automatically detect and heal tampered or missing git hooks.
+
+  </Update>
+
+
   <Update label="January 2026">
+
     ### Modernization & Developer Experience
 
     * **Premium Landing Page**: Redesigned the hero section with a modern aesthetic, vibrant gradients, and smooth Framer Motion animations.

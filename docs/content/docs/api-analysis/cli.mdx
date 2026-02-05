@@ -49,7 +49,23 @@ tharos analyze src/server.js
 tharos analyze . --format sarif > results.sarif
 ```
 
+### `tharos sync`
+
+Audit and self-heal the local Tharos setup.
+
+```bash
+tharos sync
+```
+
+This command audits:
+- Git repository presence
+- Tharos pre-commit hook integrity
+- `tharos.yaml` configuration
+- AI provider connectivity and keys
+- Policy status
+
 ### `tharos version`
+
 
 Print the current version of Tharos.
 

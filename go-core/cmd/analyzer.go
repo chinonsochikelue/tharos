@@ -5,11 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -17,11 +21,20 @@ import (
 	"time"
 
 	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 
 	"github.com/google/generative-ai-go/genai"
+
+	"github.com/spf13/viper"
 	"github.com/tdewolff/parse/v2"
 	"github.com/tdewolff/parse/v2/js"
 	"google.golang.org/api/option"
+	"gopkg.in/yaml.v2"
+)
+
+var (
+	externalRules []CustomRule
 )
 
 // ANSI color codes
@@ -81,14 +94,14 @@ type Finding struct {
 	Replacement string  `json:"replacement,omitempty"`
 }
 
-var policySeverity string
+type CustomRule struct {
+	Pattern  string `mapstructure:"pattern"`
+	Message  string `mapstructure:"message"`
+	Severity string `mapstructure:"severity"`
+}
 
 func init() {
-	// Initialize policy severity based on config file
-	policySeverity = "warning"
-	if _, err := os.Stat("tharos.yaml"); err == nil {
-		policySeverity = "block"
-	}
+	// Root-level policy mapping will be handled by individual commands
 }
 
 func setupCommand() {
@@ -162,11 +175,27 @@ func indentMultiline(text, indent string) string {
 }
 
 func printRichOutput(result BatchResult, verboseMode bool, fixModeEnabled bool) {
-	fmt.Printf("%s%s[THAROS SECURITY SCAN]%s\n", colorBold, colorCyan, colorReset)
-	fmt.Println()
+	// 🎨 Define Styles
+	headerStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("36")). // Cyan
+		Padding(0, 1).
+		MarginBottom(1)
+
+	subHeaderStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("250")) // Light Gray
+
+	fileStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("36")).
+		Underline(true)
+
+	// Render Header
+	fmt.Println(headerStyle.Render("[THAROS SECURITY SCAN]"))
 
 	if len(result.Results) == 0 {
-		fmt.Printf("%s✓%s No files analyzed.\n", colorGreen, colorReset)
+		fmt.Printf(" %s No files analyzed.\n", lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Render("✓"))
 		return
 	}
 
@@ -177,61 +206,140 @@ func printRichOutput(result BatchResult, verboseMode bool, fixModeEnabled bool) 
 		}
 	}
 
-	// Summary header
-	fmt.Printf("📊 %sScanned:%s %d files in %s\n", colorBold, colorReset, result.Summary.TotalFiles, result.Summary.Duration)
-	if result.Summary.Vulnerabilities > 0 {
-		fmt.Printf("⚠️  %sIssues:%s %d vulnerabilities in %d files\n\n", colorBold, colorReset, result.Summary.Vulnerabilities, filesWithIssues)
-	} else {
-		fmt.Printf("%s✓ No issues found!%s\n", colorGreen, colorReset)
+	// Stats Summary
+	stats := fmt.Sprintf("📊 Scanned: %d files in %s | ⚠️  Issues: %d in %d files",
+		result.Summary.TotalFiles,
+		result.Summary.Duration,
+		result.Summary.Vulnerabilities,
+		filesWithIssues)
+	fmt.Println(subHeaderStyle.Render(stats))
+	fmt.Println()
+
+	if result.Summary.Vulnerabilities == 0 {
+		fmt.Printf(" %s %s\n",
+			lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Render("✓"),
+			lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("42")).Render("No issues found! Your code is safe."))
+		fmt.Println()
+		printVerdict(true)
 		return
 	}
 
-	// Detailed findings
+	// 📋 Findings Table
+	t := table.New().
+		Border(lipgloss.NormalBorder()).
+		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("240"))).
+		Headers("SEV", "LOCATION", "SECURITY FINDING")
+
+	// Set Fixed Widths for stability
+	t.Width(90)
+
 	for _, r := range result.Results {
-		if len(r.Findings) == 0 {
-			continue
-		}
-
-		fmt.Printf("%s%s%s%s\n", colorBold, colorCyan, r.File, colorReset)
 		for _, f := range r.Findings {
-			severity := getSeveritySymbol(f.Severity)
-			color := getSeverityColor(f.Severity)
-			fmt.Printf("  %s%s Line %d:%s %s\n", color, severity, f.Line, colorReset, f.Message)
+			sevSymbol := getSeveritySymbol(f.Severity)
+			sevColor := getSeverityColorLipgloss(f.Severity)
 
-			if verboseMode && f.Replacement != "" {
-				label := "💡 Fix available:"
-				if strings.Contains(f.Message, "AI Insight") || f.Type == "ai_fix" { // Simple heuristic or we could add a field
-					label = "🤖 AI Fix available:"
+			coloredSev := lipgloss.NewStyle().Foreground(sevColor).Padding(0, 1).Render(sevSymbol)
+			location := filepath.Base(r.File) + ":" + fmt.Sprint(f.Line)
+
+			// Manual wrapping for the message to ensure it fits in the column
+			msgStyle := lipgloss.NewStyle().Width(55)
+			wrappedMsg := msgStyle.Render(f.Message)
+
+			t.Row(coloredSev, location, wrappedMsg)
+		}
+	}
+
+	fmt.Println(t.Render())
+	fmt.Println()
+
+	// 🤖 AI Insights & Fixes (if verbose or AI enabled)
+	if verboseMode || len(result.Results) > 0 {
+		aiHeaderStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("99")) // Purple-ish
+
+		for _, r := range result.Results {
+			if len(r.AIInsights) > 0 {
+				fmt.Println(fileStyle.Render(r.File))
+				for _, ai := range r.AIInsights {
+					fmt.Printf(" %s %s\n", aiHeaderStyle.Render("🤖 AI Insight:"), "Recommendation")
+					renderedRec, _ := renderMarkdown(ai.Recommendation)
+					fmt.Println(indentMultiline(renderedRec, "    "))
+
+					if ai.SuggestedFix != "" && verboseMode {
+						fixHeaderStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("42"))
+						fmt.Println(indentMultiline(fixHeaderStyle.Render("Suggested Fix:"), "    "))
+						fixMd := fmt.Sprintf("```go\n%s\n```", ai.SuggestedFix)
+						renderedFix, _ := renderMarkdown(fixMd)
+						fmt.Println(indentMultiline(renderedFix, "    "))
+					}
 				}
-				fmt.Printf("    %s%s%s %s\n", colorGreen, label, colorReset, f.Replacement)
+				fmt.Println()
 			}
 		}
-
-		// AI Insights
-		if len(r.AIInsights) > 0 {
-			for _, ai := range r.AIInsights {
-				fmt.Printf("  %s🤖 AI Recommendation:%s\n", colorCyan, colorReset)
-
-				// Render recommendation as markdown
-				renderedRec, _ := renderMarkdown(ai.Recommendation)
-				fmt.Println(indentMultiline(renderedRec, "    "))
-
-				if ai.SuggestedFix != "" && verboseMode {
-					fmt.Printf("    %sSuggested fix:%s\n", colorGreen, colorReset)
-					// Render code block or fix as markdown
-					fixMd := fmt.Sprintf("```go\n%s\n```", ai.SuggestedFix)
-					renderedFix, _ := renderMarkdown(fixMd)
-					fmt.Println(indentMultiline(renderedFix, "    "))
-				}
-			}
-		}
-		fmt.Println()
 	}
 
 	if fixModeEnabled {
-		// Just print a note that fixes were attempted if in rich mode
-		fmt.Printf("%s⚙️  Auto-fixes were processed for this scan.%s\n", colorYellow, colorReset)
+		fmt.Printf(" %s %s\n",
+			lipgloss.NewStyle().Foreground(lipgloss.Color("220")).Render("⚙️"),
+			lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("245")).Render("Auto-fixes were successfully written to disk."))
 	}
+
+	fmt.Println()
+
+	// Final Verdict logic (blocking based on critical/high)
+	isBlocked := false
+	criticalCount := 0
+	highCount := 0
+	for _, r := range result.Results {
+		for _, f := range r.Findings {
+			if f.Severity == "critical" || f.Severity == "block" {
+				criticalCount++
+			} else if f.Severity == "high" {
+				highCount++
+			}
+		}
+	}
+	if criticalCount >= 1 || highCount >= 3 {
+		isBlocked = true
+	}
+
+	printVerdict(!isBlocked)
+}
+
+func getSeverityColorLipgloss(severity string) lipgloss.Color {
+	switch severity {
+	case "critical", "block":
+		return lipgloss.Color("1") // Red
+	case "high":
+		return lipgloss.Color("196") // Bright Red
+	case "medium", "warning":
+		return lipgloss.Color("3") // Yellow
+	default:
+		return lipgloss.Color("7") // White/Gray
+	}
+}
+
+func printVerdict(pass bool) {
+	width := 60
+	style := lipgloss.NewStyle().
+		Bold(true).
+		Align(lipgloss.Center).
+		Width(width).
+		Padding(1)
+
+	if pass {
+		style = style.
+			Foreground(lipgloss.Color("15")). // White
+			Background(lipgloss.Color("42")). // Green
+			SetString("🛡️  COMMIT VERDICT: PASS")
+	} else {
+		style = style.
+			Foreground(lipgloss.Color("15")).  // White
+			Background(lipgloss.Color("196")). // Red
+			SetString("🛑  COMMIT VERDICT: BLOCK")
+	}
+
+	fmt.Println(style.Render())
+	fmt.Println()
 }
 
 func applyFixes(results []AnalysisResult) int {
@@ -304,11 +412,11 @@ func applyFixes(results []AnalysisResult) int {
 
 func getSeveritySymbol(severity string) string {
 	switch severity {
-	case "critical":
+	case "critical", "block":
 		return "💀"
 	case "high":
 		return "🔴"
-	case "medium":
+	case "medium", "warning":
 		return "⚠️ "
 	case "info":
 		return "ℹ️ "
@@ -319,11 +427,11 @@ func getSeveritySymbol(severity string) string {
 
 func getSeverityColor(severity string) string {
 	switch severity {
-	case "critical":
+	case "critical", "block":
 		return colorRed + colorBold
 	case "high":
 		return colorRed
-	case "medium":
+	case "medium", "warning":
 		return colorYellow
 	default:
 		return colorReset
@@ -417,7 +525,16 @@ func analyzeFile(filePath string, aiFlag bool) AnalysisResult {
 		AIInsights: []AIInsight{},
 	}
 
+	// Skip excluded directories
+	excludes := viper.GetStringSlice("exclude")
+	for _, pattern := range excludes {
+		if strings.Contains(filePath, pattern) {
+			return result
+		}
+	}
+
 	content, err := ioutil.ReadFile(filePath)
+
 	if err != nil {
 		// PRO-GRADE: Gracefully handle deleted files in staged check
 		if os.IsNotExist(err) {
@@ -433,7 +550,18 @@ func analyzeFile(filePath string, aiFlag bool) AnalysisResult {
 	}
 
 	// 1. Precise AST Analysis
-	analyzeAST(content, &result, policySeverity, filePath)
+	ext := strings.ToLower(filepath.Ext(filePath))
+	switch ext {
+	case ".go":
+		analyzeGoAST(content, &result, filePath)
+	case ".js", ".ts", ".jsx", ".tsx":
+		analyzeAST(content, &result, "warning", filePath)
+	case ".py":
+		analyzePythonAST(content, &result, filePath)
+	}
+
+	// 1.5 Custom Regex-based Rules from tharos.yaml
+	analyzeCustomRules(content, &result, filePath)
 
 	// 2. Integration with AI Providers
 	if len(result.Findings) > 0 && (aiFlag || os.Getenv("THAROS_AI_AUTO_EXPLAIN") == "true") {
@@ -449,7 +577,166 @@ func analyzeFile(filePath string, aiFlag bool) AnalysisResult {
 // Rule definition for extensibility
 type RuleCheck func(tokenType js.TokenType, text string, prevToken js.TokenType, prevText string, pPrevToken js.TokenType, pPrevText string, currentLine int, byteOffset int, filePath string) *Finding
 
+func loadExternalPolicies(pPath string, pDir string) {
+	// Clear previous external rules
+	externalRules = []CustomRule{}
+
+	// 1. Load from specific file if provided
+	if pPath != "" {
+		rules, err := readPolicyFile(pPath)
+		if err == nil {
+			externalRules = append(externalRules, rules...)
+		}
+	}
+
+	// 2. Load from policy directory if provided (default "policies")
+	if pDir != "" {
+		files, _ := ioutil.ReadDir(pDir)
+		for _, f := range files {
+			if strings.HasSuffix(f.Name(), ".yaml") || strings.HasSuffix(f.Name(), ".yml") {
+				rules, err := readPolicyFile(filepath.Join(pDir, f.Name()))
+				if err == nil {
+					externalRules = append(externalRules, rules...)
+				}
+			}
+		}
+	}
+}
+
+func readPolicyFile(filePath string) ([]CustomRule, error) {
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	// The policy file structure is slightly different (root level security.rules)
+	type Policy struct {
+		Security struct {
+			Rules []CustomRule `yaml:"rules"`
+		} `yaml:"security"`
+	}
+
+	var p Policy
+	err = yaml.Unmarshal(data, &p)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.Security.Rules, nil
+}
+
+func analyzeCustomRules(content []byte, result *AnalysisResult, filePath string) {
+	if !viper.GetBool("security.enabled") && len(externalRules) == 0 {
+		return
+	}
+
+	var localRules []CustomRule
+	viper.UnmarshalKey("security.rules", &localRules)
+
+	// Merge local and external rules
+	allRules := append(localRules, externalRules...)
+
+	lines := strings.Split(string(content), "\n")
+
+	for _, rule := range allRules {
+
+		re, err := regexp.Compile(rule.Pattern)
+		if err != nil {
+			continue
+		}
+
+		ignoreNext := false
+		for i, line := range lines {
+			if strings.Contains(line, "tharos-security-ignore") {
+				ignoreNext = true
+				continue
+			}
+
+			if ignoreNext {
+				ignoreNext = false
+				continue
+			}
+
+			if re.MatchString(line) {
+				result.Findings = append(result.Findings, Finding{
+					Rule:        "security.custom_rule",
+					Type:        "security_custom",
+					Message:     rule.Message,
+					Severity:    rule.Severity,
+					Confidence:  1.0,
+					Explain:     "This finding was triggered by a user-defined security rule in tharos.yaml.",
+					Remediation: "Follow the project's security guidelines to resolve this custom finding.",
+					Line:        i + 1,
+				})
+			}
+		}
+	}
+}
+
+func analyzeGoAST(content []byte, result *AnalysisResult, filePath string) {
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, filePath, content, parser.ParseComments)
+	if err != nil {
+		return
+	}
+
+	ast.Inspect(f, func(n ast.Node) bool {
+		// Rule: SQL Injection in fmt.Sprintf or direct concatenation
+		if call, ok := n.(*ast.CallExpr); ok {
+			if fun, ok := call.Fun.(*ast.SelectorExpr); ok {
+				if pkg, ok := fun.X.(*ast.Ident); ok && pkg.Name == "fmt" && fun.Sel.Name == "Sprintf" {
+					if len(call.Args) > 0 {
+						if lit, ok := call.Args[0].(*ast.BasicLit); ok && lit.Kind == token.STRING {
+							query := strings.ToUpper(lit.Value)
+							if strings.Contains(query, "SELECT") || strings.Contains(query, "INSERT") || strings.Contains(query, "UPDATE") {
+								// Check if any subsequent args are variables (potentially untrusted)
+								if len(call.Args) > 1 {
+									line := fset.Position(call.Pos()).Line
+									result.Findings = append(result.Findings, Finding{
+										Rule:        "security.go.sqli",
+										Type:        "security_sqli",
+										Message:     "Potential SQL Injection: Dynamic formatting in SQL query via fmt.Sprintf.",
+										Severity:    "critical",
+										Confidence:  0.9,
+										Explain:     "Using fmt.Sprintf to build SQL queries with variables is dangerous. It bypasses parameterization and allows SQL injection.",
+										Remediation: "Use database/sql parameterized queries (e.g., db.Query('SELECT ... WHERE id = ?', id)).",
+										Line:        line,
+									})
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return true
+	})
+}
+
+func analyzePythonAST(content []byte, result *AnalysisResult, filePath string) {
+	// Simple Python Analysis (Regex-based for now, until we add a full parser)
+	lines := strings.Split(string(content), "\n")
+	for i, line := range lines {
+		if strings.Contains(line, "os.system(") || strings.Contains(line, "subprocess.run(") {
+			if !strings.Contains(line, "shell=False") {
+				result.Findings = append(result.Findings, Finding{
+					Rule:       "security.py.injection",
+					Type:       "security_code_injection",
+					Message:    "High-risk Python shell execution detected.",
+					Severity:   "critical",
+					Confidence: 0.8,
+
+					Explain:     "Functions like os.system or subprocess.run without shell=False are vulnerable to command injection.",
+					Remediation: "Use subprocess.run(args, shell=False) or provide arguments as a list.",
+					Line:        i + 1,
+				})
+			}
+		}
+	}
+}
+
 func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, filePath string) {
+
 	// FIX: Handle Hashbang/Shebang lines by masking them with spaces to preserve line numbers
 	if len(content) > 2 && string(content[0:2]) == "#!" {
 		for i := 0; i < len(content); i++ {
@@ -855,9 +1142,20 @@ func parseAIResponse(response string, result *AnalysisResult) {
 		jsonStr := response[jsonStart : jsonEnd+1]
 		var insight AIInsight
 		if err := json.Unmarshal([]byte(jsonStr), &insight); err == nil {
-			result.AIInsights = append(result.AIInsights, insight)
+			// Respect min_risk_score from tharos.yaml
+			minScore := viper.GetInt("ai.min_risk_score")
+			if minScore == 0 {
+				minScore = 60 // Default if not set
+			}
 
-			// Apply AI-suggested fixes to findings
+			if insight.RiskScore >= minScore {
+				result.AIInsights = append(result.AIInsights, insight)
+			} else if verbose {
+				fmt.Printf("  %sℹ AI Insight ignored (Risk Score %d < %d)%s\n", colorGray, insight.RiskScore, minScore, colorReset)
+			}
+
+			// Apply AI-suggested fixes to findings (regardless of visibility, if they are accurate)
+
 			for _, fix := range insight.Fixes {
 				for i := range result.Findings {
 					// Match by line or type
@@ -874,10 +1172,18 @@ func parseAIResponse(response string, result *AnalysisResult) {
 	}
 
 	// Fallback if not valid JSON
-	result.AIInsights = append(result.AIInsights, AIInsight{
-		Recommendation: response,
-		RiskScore:      50,
-	})
+	// Respect min_risk_score for fallback as well
+	minScore := viper.GetInt("ai.min_risk_score")
+	if minScore == 0 {
+		minScore = 60
+	}
+
+	if minScore <= 50 { // Fallback has a score of 50
+		result.AIInsights = append(result.AIInsights, AIInsight{
+			Recommendation: response,
+			RiskScore:      50,
+		})
+	}
 }
 
 func generatePrompt(code string, findings []Finding) string {

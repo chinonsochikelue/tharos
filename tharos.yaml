@@ -1,4 +1,21 @@
 # Tharos Organizational Policy
+exclude:
+  - "audit_samples"
+  - "dist"
+  - "node_modules"
+
+security:
+
+  enabled: true
+  rules:
+    - pattern: "eval\\("
+      message: "Code injection risk: eval() detected"
+      severity: "block"
+    
+    - pattern: "(?i)(api[_-]?key|secret).*=.*['\"].*['\"]"
+      message: "Hardcoded credentials detected"
+      severity: "block"
+
 policies:
   security:
     severity: block
@@ -6,6 +23,7 @@ policies:
     severity: warning
   todo:
     severity: warning
+
 
 # Cloud Sync Config
 sync:
@@ -17,3 +35,7 @@ sync:
 ai:
   mode: managed # Options: local, managed, hybrid
   provider: auto
+  min_risk_score: 60 # Only show insights for risks >= 60
+
+
+

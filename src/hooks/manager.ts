@@ -8,7 +8,7 @@ const execAsync = promisify(exec);
 const HOOK_CONTENT = `#!/bin/sh
 # Tharos Git Hook
 # This hook is managed by Tharos. Do not modify manually.
-# VERSION: 0.1.1
+# VERSION: 0.1.2
 
 # Self-healing check
 if ! command -v tharos > /dev/null 2>&1; then
@@ -16,9 +16,13 @@ if ! command -v tharos > /dev/null 2>&1; then
   exit 0
 fi
 
+# Periodic setup audit & policy sync (non-blocking)
+tharos sync > /dev/null 2>&1 &
+
 # Run pre-commit security check
 tharos check
 `;
+
 
 
 export async function initHooks() {

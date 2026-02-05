@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -21,12 +20,18 @@ func init() {
 
 	analyzeCmd.Flags().BoolVar(&aiEnabled, "ai", false, "force AI analysis for all files")
 	analyzeCmd.Flags().BoolVar(&fixMode, "fix", false, "attempt to auto-fix issues")
+	analyzeCmd.Flags().StringVar(&policyPath, "policy", "", "path to external policy file (YAML)")
+	analyzeCmd.Flags().StringVar(&policyDir, "policy-dir", "policies", "directory for policy files")
 }
 
 func runAnalyze(cmd *cobra.Command, args []string) {
 	path := args[0]
 
+	// Load external policies if flags are set
+	loadExternalPolicies(policyPath, policyDir)
+
 	start := time.Now()
+
 	results := analyzePath(path, aiEnabled)
 	duration := time.Since(start)
 
@@ -50,8 +55,6 @@ func runAnalyze(cmd *cobra.Command, args []string) {
 		applyFixes(output.Results)
 	}
 
-	isMachineReadable := jsonOutput || outputFormat == "json" || outputFormat == "sarif"
-
 	if jsonOutput || outputFormat == "json" {
 		printJSONOutput(output)
 	} else if outputFormat == "sarif" {
@@ -65,7 +68,7 @@ func runAnalyze(cmd *cobra.Command, args []string) {
 	highCount := 0
 	for _, r := range results {
 		for _, f := range r.Findings {
-			if f.Severity == "critical" {
+			if f.Severity == "critical" || f.Severity == "block" {
 				criticalCount++
 			} else if f.Severity == "high" {
 				highCount++
@@ -75,9 +78,6 @@ func runAnalyze(cmd *cobra.Command, args []string) {
 
 	// 🛑 Blocking Rule: ≥1 Critical OR ≥3 High
 	if criticalCount >= 1 || highCount >= 3 {
-		if !isMachineReadable {
-			fmt.Printf("\n%s🛑 Commit Blocked:%s Detected %d Critical and %d High risk issues.\n", colorRed+colorBold, colorReset, criticalCount, highCount)
-		}
 		os.Exit(1)
 	}
 }
