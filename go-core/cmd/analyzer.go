@@ -113,26 +113,36 @@ func setupCommand() {
 
 	// Check Gemini
 	fmt.Printf("%s1. Google Gemini (Recommended)%s\n", colorBold, colorReset)
+	// tharos-security-ignore
 	if geminiKey := os.Getenv("GEMINI_API_KEY"); geminiKey != "" {
 		fmt.Printf("  %s✓ API Key Configured%s\n", colorGreen, colorReset)
 	} else {
 		fmt.Printf("  %s✗ Not configured%s\n", colorRed, colorReset)
 		fmt.Printf("    1. Get key: %shttps://makersuite.google.com/app/apikey%s\n", colorCyan, colorReset)
+		// tharos-security-ignore
 		fmt.Printf("    2. Set env:  %sexport GEMINI_API_KEY=\"your-key\"%s\n", colorCyan, colorReset)
+		// tharos-security-ignore
 		fmt.Printf("       Windows:  %s$env:GEMINI_API_KEY=\"your-key\"%s\n", colorCyan, colorReset)
+
 	}
+
 	fmt.Println()
 
 	// Check Groq
 	fmt.Printf("%s2. Groq (Fast & Free)%s\n", colorBold, colorReset)
+	// tharos-security-ignore
 	if groqKey := os.Getenv("GROQ_API_KEY"); groqKey != "" {
 		fmt.Printf("  %s✓ API Key Configured%s\n", colorGreen, colorReset)
 	} else {
 		fmt.Printf("  %s✗ Not configured%s\n", colorRed, colorReset)
 		fmt.Printf("    1. Get key: %shttps://console.groq.com%s\n", colorCyan, colorReset)
+		// tharos-security-ignore
 		fmt.Printf("    2. Set env:  %sexport GROQ_API_KEY=\"your-key\"%s\n", colorCyan, colorReset)
+		// tharos-security-ignore
 		fmt.Printf("       Windows:  %s$env:GROQ_API_KEY=\"your-key\"%s\n", colorCyan, colorReset)
+
 	}
+
 	fmt.Println()
 
 	fmt.Printf("%sNote:%s Tharos works great without AI! These provide enhanced insights.\n", colorBold, colorReset)
@@ -772,16 +782,19 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, 
 				}
 
 				return &Finding{
-					Rule:        "security.code_injection",
-					Type:        "security_code_injection",
-					Message:     fmt.Sprintf("Dangerous function '%s' detected.", text),
-					Severity:    "high",
-					Confidence:  0.9,
-					Explain:     "Functions like eval() can execute arbitrary strings as code, leading to injection vulnerabilities.",
+					Rule:       "security.code_injection",
+					Type:       "security_code_injection",
+					Message:    fmt.Sprintf("Dangerous function '%s' detected.", text),
+					Severity:   "high",
+					Confidence: 0.9,
+					// tharos-security-ignore
+					Explain: "Functions like eval() can execute arbitrary strings as code, leading to injection vulnerabilities.",
+					// tharos-security-ignore
 					Remediation: "Avoid eval(). Use JSON.parse() for data or refactor to use explicit logic.",
-					Line:        line,
-					ByteOffset:  offset,
-					ByteLength:  len(text),
+
+					Line:       line,
+					ByteOffset: offset,
+					ByteLength: len(text),
 				}
 			}
 			return nil
@@ -1280,7 +1293,7 @@ func ConvertToSARIF(results []AnalysisResult) SARIFReport {
 				Tool: SARIFTool{
 					Driver: SARIFDriver{
 						Name:           "Tharos",
-						InformationURI: "https://tharos.dev",
+						InformationURI: "https://tharos.vercel.app",
 						Rules:          []SARIFRule{},
 					},
 				},

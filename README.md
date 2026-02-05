@@ -253,13 +253,13 @@ npm test
 
 ## 📖 Documentation
 
-Full documentation available at [https://tharos.vercel.app](https://tharos.dev)
+Full documentation available at [https://tharos.vercel.app](https://tharos.vercel.app)
 
-- [Getting Started Guide](https://tharos.dev/docs/getting-started)
-- [Policy Configuration](https://tharos.dev/docs/policies)
-- [AI Integration](https://tharos.dev/docs/ai)
-- [VSCode Extension](https://tharos.dev/docs/vscode)
-- [API Reference](https://tharos.dev/docs/api)
+- [Getting Started Guide](https://tharos.vercel.app/docs)
+- [Policy Configuration](https://tharos.vercel.app/docs/policies)
+- [AI Integration](https://tharos.vercel.app/docs/quickstart#2-configure-ai-recommended)
+- [VSCode Extension](https://tharos.vercel.app/docs/vscode)
+- [API Reference](https://tharos.vercel.app/docs/api)
 
 ## 🎯 Use Cases
 
@@ -327,7 +327,7 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ## 💬 Support
 
-- **Documentation**: [https://tharos.dev](https://tharos.dev)
+- **Documentation**: [https://tharos.vercel.app](https://tharos.vercel.app)
 - **Issues**: [GitHub Issues](https://github.com/chinonsochikelue/tharos/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/chinonsochikelue/tharos/discussions)
 - **Discord**: [Join our community](https://discord.gg/tharos)
