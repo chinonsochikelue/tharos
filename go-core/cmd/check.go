@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var checkCmd = &cobra.Command{
@@ -48,8 +49,21 @@ func runCheck(cmd *cobra.Command, args []string) {
 	}
 
 	var stagedFiles []string
+	excludes := viper.GetStringSlice("exclude")
 	for path, s := range status {
 		if s.Staging == git.Added || s.Staging == git.Modified || s.Staging == git.Renamed {
+			// Skip excluded files/directories
+			isExcluded := false
+			for _, pattern := range excludes {
+				if strings.Contains(path, pattern) {
+					isExcluded = true
+					break
+				}
+			}
+			if isExcluded {
+				continue
+			}
+
 			ext := strings.ToLower(filepath.Ext(path))
 			if ext == ".js" || ext == ".ts" || ext == ".jsx" || ext == ".tsx" ||
 				ext == ".go" || ext == ".py" {

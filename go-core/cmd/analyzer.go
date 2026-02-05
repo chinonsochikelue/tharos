@@ -503,11 +503,21 @@ func walkAndAnalyze(root string, aiFlag bool) []AnalysisResult {
 	}
 
 	// Walk directory
+	excludes := viper.GetStringSlice("exclude")
 	filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return nil
 		}
+		for _, pattern := range excludes {
+			if strings.Contains(path, pattern) {
+				if d.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+		}
 		if d.IsDir() {
+
 			name := d.Name()
 			if name == "node_modules" || name == ".git" || name == "dist" || name == "build" {
 				return filepath.SkipDir
@@ -534,14 +544,6 @@ func analyzeFile(filePath string, aiFlag bool) AnalysisResult {
 		File:       filePath,
 		Findings:   []Finding{},
 		AIInsights: []AIInsight{},
-	}
-
-	// Skip excluded directories
-	excludes := viper.GetStringSlice("exclude")
-	for _, pattern := range excludes {
-		if strings.Contains(filePath, pattern) {
-			return result
-		}
 	}
 
 	content, err := ioutil.ReadFile(filePath)
