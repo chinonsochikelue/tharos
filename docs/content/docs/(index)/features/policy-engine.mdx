@@ -1,0 +1,59 @@
+---
+title: Policy Engine
+description: Manage, inspect, and enforce security policies with Tharos.
+---
+
+# Policy Engine
+
+Tharos is designed to be a flexible policy enforcement point. It combines built-in AST checks, local configuration, and external enterprise policies into a single unified security model.
+
+## 📜 Policy Inspector
+
+You can view all currently active rules—including built-in checks, local overrides, and loaded external policies—using the inspector command:
+
+```bash
+tharos rules
+```
+
+This renders a formatted table showing:
+- **ID**: The unique identifier for the rule (e.g., `security.js.eval`).
+- **Source**: Where the rule comes from (Built-in, tharos.yaml, or External Policy).
+- **Severity**: Critical, High, Medium, or Low.
+- **Description**: A brief summary of what the rule detects.
+
+## 🏢 Enterprise Policies
+
+For organizations managing multiple repositories, Tharos supports loading external policy files. This allows security teams to define a central ruleset that is applied across all projects.
+
+```bash
+# Load specific policy file
+tharos analyze . --policy /path/to/corporate-policy.yaml
+
+# Load all policies from a directory
+tharos analyze . --policy-dir /shared/security-rules
+```
+
+### Policy File Format
+
+External policies follow the same schema as `tharos.yaml`:
+
+```yaml
+security:
+  rules:
+    - id: "corp.no-aws-keys"
+      pattern: "(?i)aws_access_key_id"
+      message: "AWS Keys must be loaded via Vault"
+      severity: "block"
+```
+
+## 🛠️ Custom Local Rules
+
+You can add project-specific rules directly in your `tharos.yaml` configuration file. These are useful for enforcing team conventions or temporary hotfixes.
+
+```yaml
+security:
+  rules:
+    - pattern: "console\\.log"
+      message: "Remove console.log before committing"
+      severity: "medium"
+```

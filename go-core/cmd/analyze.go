@@ -62,6 +62,8 @@ func runAnalyze(cmd *cobra.Command, args []string) {
 		printJSONOutput(output)
 	} else if outputFormat == "sarif" {
 		printSARIFOutput(output.Results)
+	} else if outputFormat == "html" {
+		printHTMLOutput(output)
 	} else {
 		printRichOutput(output, verbose, fixMode)
 	}

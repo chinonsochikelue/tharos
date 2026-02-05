@@ -101,6 +101,50 @@ type CustomRule struct {
 	Severity string `mapstructure:"severity"`
 }
 
+type UnifiedRule struct {
+	ID          string
+	Source      string // "Built-in", "tharos.yaml", "Policy File"
+	Severity    string
+	Description string
+}
+
+func GetAllActiveRules() []UnifiedRule {
+	var allRules []UnifiedRule
+
+	// 1. Built-in AST Rules
+	allRules = append(allRules, []UnifiedRule{
+		{ID: "security.js.injection", Source: "Built-in", Severity: "critical", Description: "Detects eval/exec code injection in JS/TS"},
+		{ID: "security.js.credentials", Source: "Built-in", Severity: "critical", Description: "Entropy-based secret detection in JS/TS"},
+		{ID: "security.js.xss", Source: "Built-in", Severity: "high", Description: "Direct DOM manipulation (innerHTML, etc.)"},
+		{ID: "security.go.sqli", Source: "Built-in", Severity: "critical", Description: "SQL injection in fmt.Sprintf usage"},
+		{ID: "security.py.injection", Source: "Built-in", Severity: "critical", Description: "OS command injection in Python (os.system)"},
+	}...)
+
+	// 2. Local Rules from tharos.yaml
+	var localRules []CustomRule
+	viper.UnmarshalKey("security.rules", &localRules)
+	for _, r := range localRules {
+		allRules = append(allRules, UnifiedRule{
+			ID:          "config.custom",
+			Source:      "tharos.yaml",
+			Severity:    r.Severity,
+			Description: r.Message,
+		})
+	}
+
+	// 3. External Policies
+	for _, r := range externalRules {
+		allRules = append(allRules, UnifiedRule{
+			ID:          "policy.external",
+			Source:      "Policy File",
+			Severity:    r.Severity,
+			Description: r.Message,
+		})
+	}
+
+	return allRules
+}
+
 func init() {
 	// Root-level policy mapping will be handled by individual commands
 }
@@ -1493,5 +1537,281 @@ func runInteractiveFixes(batch *BatchResult) {
 		}
 	}
 
-	fmt.Println("\n" + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("42")).Render("✅ INTERACTIVE REVIEW COMPLETE."))
+	// ... existing code ...
+}
+
+func printHTMLOutput(results BatchResult) {
+	jsonData, err := json.Marshal(results)
+	if err != nil {
+		fmt.Printf("Error generating HTML report: %v\n", err)
+		return
+	}
+
+	htmlTemplate := `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tharos Security Audit Report</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #38bdf8;
+            --critical: #ef4444;
+            --high: #f97316;
+            --medium: #eab308;
+            --info: #3b82f6;
+            --success: #22c55e;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .file-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .file-header {
+            padding: 1rem 1.5rem;
+            background: rgba(255,255,255,0.02);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .file-name {
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+        }
+
+        .finding-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .finding-item {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.2s;
+        }
+
+        .finding-item:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .severity-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .sev-critical { background: rgba(239, 68, 68, 0.2); color: var(--critical); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .sev-high { background: rgba(249, 115, 22, 0.2); color: var(--high); border: 1px solid rgba(249, 115, 22, 0.3); }
+        .sev-medium { background: rgba(234, 179, 8, 0.2); color: var(--medium); border: 1px solid rgba(234, 179, 8, 0.3); }
+        .sev-info { background: rgba(59, 130, 246, 0.2); color: var(--info); border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        .finding-header {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .finding-message {
+            font-weight: 500;
+            flex-grow: 1;
+        }
+
+        .finding-rule {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .finding-details {
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .verdict-pass { color: var(--success); }
+        .verdict-block { color: var(--critical); }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">
+                🛡️ THAROS SECURITY REPORT
+            </div>
+            <div class="verdict">
+                VERDICT: <span id="verdict-text" style="font-weight: 800;">CALCULATING...</span>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="stats-vulns">0</div>
+                <div class="stat-label">Total Vulnerabilities</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stats-files">0</div>
+                <div class="stat-label">Files Scanned</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stats-dur">0ms</div>
+                <div class="stat-label">Duration</div>
+            </div>
+        </div>
+
+        <div id="results-container"></div>
+    </div>
+
+    <script>
+        const reportData = %s;
+
+        function renderReport() {
+            // Update Stats
+            document.getElementById('stats-vulns').textContent = reportData.summary.vulnerabilities;
+            document.getElementById('stats-files').textContent = reportData.summary.total_files;
+            document.getElementById('stats-dur').textContent = reportData.summary.duration;
+
+            // Verdict
+            const crit = reportData.results.reduce((acc, r) => acc + r.findings.filter(f => f.severity === 'critical' || f.severity === 'block').length, 0);
+            const high = reportData.results.reduce((acc, r) => acc + r.findings.filter(f => f.severity === 'high').length, 0);
+            const verEl = document.getElementById('verdict-text');
+            if (crit > 0 || high >= 3) {
+                verEl.textContent = "BLOCK";
+                verEl.className = "verdict-block";
+            } else {
+                verEl.textContent = "PASS";
+                verEl.className = "verdict-pass";
+            }
+
+            // Render Files
+            const container = document.getElementById('results-container');
+            if (reportData.results.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 3rem;">No files analyzed.</div>';
+                return;
+            }
+
+            // Sort: files with issues first
+            const sortedResults = reportData.results.sort((a,b) => b.findings.length - a.findings.length);
+
+            sortedResults.forEach(res => {
+                const hasIssues = res.findings.length > 0;
+                if(!hasIssues) return; // Optional: Show/hide safe files
+
+                const section = document.createElement('div');
+                section.className = 'file-section';
+                
+                let findingsHtml = '<ul class="finding-list">';
+                res.findings.forEach(f => {
+                    const sevClass = 'sev-' + (f.severity === 'block' ? 'critical' : f.severity);
+                    findingsHtml += '<li class="finding-item">';
+                    findingsHtml += '<div class="finding-header">';
+                    findingsHtml += '<span class="severity-badge ' + sevClass + '">' + f.severity + '</span>';
+                    findingsHtml += '<span class="finding-message">Line ' + f.line + ': ' + f.message + '</span>';
+                    findingsHtml += '<span class="finding-rule">' + f.rule + '</span>';
+                    findingsHtml += '</div>';
+                    if (f.explain) {
+                        findingsHtml += '<div class="finding-details">🧠 ' + f.explain + '</div>';
+                    }
+                    findingsHtml += '</li>';
+                });
+                findingsHtml += '</ul>';
+
+                section.innerHTML = 
+                    '<div class="file-header">' +
+                    '<span class="file-name">' + res.file + '</span>' +
+                    '<span class="severity-badge sev-info">' + res.findings.length + ' Finding(s)</span>' +
+                    '</div>' + 
+                    findingsHtml;
+                container.appendChild(section);
+            });
+
+            if (container.children.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--success); padding: 3rem; font-size: 1.2rem;">✨ Clean Scan! No issues found.</div>';
+            }
+        }
+
+        renderReport();
+    </script>
+</body>
+</html>
+`
+	fmt.Printf(htmlTemplate, jsonData)
 }

@@ -1,0 +1,45 @@
+---
+title: Reporting & Compliance
+description: Export security findings in HTML, JSON, and SARIF formats.
+---
+
+# Reporting & Compliance
+
+Tharos provides flexible reporting options to suit different workflows, from local debugging to enterprise compliance auditing.
+
+## 📊 HTML Audit Reports
+
+For a visual overview of your project's security posture, generating an HTML report is the best option. This self-contained file is perfect for sharing with stakeholders or archiving as an audit artifact.
+
+```bash
+tharos analyze . --format html > audit-report.html
+```
+
+The HTML report features:
+- **Interactive Dashboard**: Filter and sort findings by severity.
+- **Glassmorphic UI**: A premium, modern design.
+- **Zero Dependencies**: Everything is embedded in a single file—no external CSS or JS required.
+
+![HTML Report Screenshot](/images/html-report-demo.png)
+
+## 🏗️ SARIF Integration
+
+Standardized integration with CI/CD platforms (GitHub Actions, GitLab CI) is achieved via the SARIF format.
+
+```bash
+tharos analyze . --format sarif > results.sarif
+```
+
+Upload this file to GitHub Advanced Security to see Tharos findings directly in your pull request annotations.
+
+## 💻 CLI Output Formats
+
+You can also output raw JSON for custom tooling or piping into `jq`.
+
+```bash
+# JSON Output
+tharos analyze . --format json
+
+# Standard Rich Output (Default)
+tharos analyze .
+```

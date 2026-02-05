@@ -1,0 +1,48 @@
+---
+title: Interactive Magic Fixes
+description: AI-powered automated remediation for security findings.
+---
+
+# Interactive Magic Fixes
+
+Tharos doesn't just find security issues; it helps you fix them. The **Magic Fix** engine uses advanced AI to generate context-aware patches that resolve vulnerabilities while maintaining your project's coding style.
+
+## 🎮 Interactive Mode
+
+The best way to review and apply fixes is through the Interactive CLI. This mode puts you in control, allowing you to audit each proposed change before it touches your code.
+
+```bash
+tharos analyze . --interactive
+```
+
+### Controls
+
+The interactive dashboard is keyboard-driven:
+
+- **j / k** : Navigate up and down through the available fixes.
+- **f** : **Fix** - Apply the suggested patch immediately.
+- **e** : **Explain** - Get a detailed AI explanation of why this change is needed.
+- **s** : **Skip** - Ignore this finding for now.
+- **q** : **Quit** - Abort the session.
+
+![Interactive Mode Demo](/images/interactive-demo.gif)
+
+## ⚡ Batch Mode
+
+If you are confident in the AI's capabilities or running in a constrained environment, you can apply all high-confidence fixes automatically.
+
+```bash
+# Apply all available fixes without confirmation
+tharos analyze . --fix
+```
+
+> [!WARNING]
+> Batch mode will modify files in place. We strictly recommend ensuring you have a clean git state before running this command so you can easily revert changes if needed.
+
+## How It Works
+
+1. **Context Extraction**: Tharos extracts the vulnerable code snippet along with surrounding context.
+2. **AI Analysis**: The AI model (Gemini/Llama) analyzes the vulnerability type and generates a safe replacement.
+3. **Verification**: Tharos ensures the syntax is valid before proposing the fix.
+4. **Application**: In interactive mode, fixes are applied purely in-memory until you confirm.
+

@@ -2,6 +2,9 @@
   "title": "Features",
   "icon": "Zap",
   "pages": [
-    "security-engine"
+    "security-engine",
+    "interactive-fixes",
+    "policy-engine",
+    "reporting"
   ]
 }
