@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
 
@@ -1352,4 +1353,143 @@ func ConvertToSARIF(results []AnalysisResult) SARIFReport {
 	}
 
 	return report
+}
+
+func runInteractiveFixes(batch *BatchResult) {
+	headerStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("36")).
+		Padding(0, 1).
+		MarginBottom(1)
+
+	fmt.Println(headerStyle.Render("\n✨ THAROS INTERACTIVE MAGIC FIX SESSION"))
+	fmt.Println(lipgloss.NewStyle().Foreground(lipgloss.Color("245")).Render("Review each finding and decide: [Fix], [Explain], or [Skip].\n"))
+
+	for i := range batch.Results {
+		res := &batch.Results[i]
+		if len(res.Findings) == 0 {
+			continue
+		}
+
+		fmt.Printf("%s📁 FILE: %s%s\n", colorBold+colorCyan, res.File, colorReset)
+
+		// Create a copy of pointers to findings to sort for review
+		findingsToReview := make([]*Finding, 0, len(res.Findings))
+		for j := range res.Findings {
+			findingsToReview = append(findingsToReview, &res.Findings[j])
+		}
+
+		// Sort by line for a logical review order (top to bottom)
+		sort.Slice(findingsToReview, func(i, j int) bool {
+			return findingsToReview[i].Line < findingsToReview[j].Line
+		})
+
+		markedForFix := []*Finding{}
+
+		for _, f := range findingsToReview {
+			// Clear separator
+			fmt.Println(strings.Repeat("─", 60))
+
+			// Display finding context
+			sevSym := getSeveritySymbol(f.Severity)
+			sevCol := getSeverityColor(f.Severity)
+			fmt.Printf("%s %s[%s] LINE %d: %s%s\n", sevSym, sevCol, strings.ToUpper(f.Severity), f.Line, f.Message, colorReset)
+
+			var choice string
+			options := []huh.Option[string]{
+				huh.NewOption("Skip finding", "skip"),
+			}
+
+			if f.Replacement != "" {
+				options = append([]huh.Option[string]{huh.NewOption("Apply Magic Fix", "fix")}, options...)
+			}
+
+			options = append(options, huh.NewOption("Explain Risk (AI)", "explain"))
+			options = append(options, huh.NewOption("Abort session", "abort"))
+
+			for {
+				prompt := huh.NewSelect[string]().
+					Title("Action:").
+					Options(options...).
+					Value(&choice)
+
+				err := prompt.Run()
+				if err != nil {
+					fmt.Println("Interactive session interrupted.")
+					return
+				}
+
+				if choice == "explain" {
+					fmt.Printf("\n%s🧠 AI EXPLANATION:%s\n", colorBold+colorYellow, colorReset)
+					if f.Explain != "" {
+						fmt.Println(f.Explain)
+					} else {
+						fmt.Println("No explanation available for this finding.")
+					}
+					if f.Remediation != "" {
+						fmt.Printf("\n%s💡 REMEDIATION:%s\n", colorBold+colorGreen, colorReset)
+						fmt.Println(f.Remediation)
+					}
+					fmt.Println("\nPress Enter to return to options...")
+					var dummy string
+					fmt.Scanln(&dummy)
+					// Continue loop to re-show options
+					continue
+				}
+
+				if choice == "fix" {
+					markedForFix = append(markedForFix, f)
+					fmt.Printf("%s  ✅ Marked for fix.%s\n", colorGreen, colorReset)
+				} else if choice == "abort" {
+					fmt.Println("Aborting session.")
+					return
+				} else if choice == "skip" {
+					fmt.Println("Skipped.")
+				}
+				break
+			}
+		}
+
+		if len(markedForFix) > 0 {
+			// Apply marked fixes in reverse order of offset to avoid shifting issues
+			sort.Slice(markedForFix, func(i, j int) bool {
+				return markedForFix[i].ByteOffset > markedForFix[j].ByteOffset
+			})
+
+			content, err := ioutil.ReadFile(res.File)
+			if err != nil {
+				fmt.Printf("❌ Failed to re-read file for fixing: %v\n", err)
+				continue
+			}
+
+			newContent := make([]byte, len(content))
+			copy(newContent, content)
+
+			appliedAny := false
+			for _, f := range markedForFix {
+				if f.ByteOffset >= len(newContent) || f.ByteOffset+f.ByteLength > len(newContent) {
+					continue
+				}
+				prefix := newContent[:f.ByteOffset]
+				suffix := newContent[f.ByteOffset+f.ByteLength:]
+				updated := make([]byte, 0, len(prefix)+len(f.Replacement)+len(suffix))
+				updated = append(updated, prefix...)
+				updated = append(updated, []byte(f.Replacement)...)
+				updated = append(updated, suffix...)
+				newContent = updated
+				appliedAny = true
+			}
+
+			if appliedAny {
+				err = ioutil.WriteFile(res.File, newContent, 0o644)
+				if err != nil {
+					fmt.Printf("❌ Error writing fixes to %s: %v\n", res.File, err)
+				} else {
+					fmt.Printf("\n%s✨ Successfully applied %d fixes to %s%s\n", colorGreen, len(markedForFix), res.File, colorReset)
+				}
+			}
+		}
+	}
+
+	fmt.Println("\n" + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("42")).Render("✅ INTERACTIVE REVIEW COMPLETE."))
 }

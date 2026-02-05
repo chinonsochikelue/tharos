@@ -22,6 +22,7 @@ func init() {
 	analyzeCmd.Flags().BoolVar(&fixMode, "fix", false, "attempt to auto-fix issues")
 	analyzeCmd.Flags().StringVar(&policyPath, "policy", "", "path to external policy file (YAML)")
 	analyzeCmd.Flags().StringVar(&policyDir, "policy-dir", "policies", "directory for policy files")
+	analyzeCmd.Flags().BoolVarP(&interactiveMode, "interactive", "i", false, "interactive review and fix mode")
 }
 
 func runAnalyze(cmd *cobra.Command, args []string) {
@@ -51,7 +52,9 @@ func runAnalyze(cmd *cobra.Command, args []string) {
 	}
 
 	// Apply fixes if requested, regardless of output format
-	if fixMode {
+	if interactiveMode {
+		runInteractiveFixes(&output)
+	} else if fixMode {
 		applyFixes(output.Results)
 	}
 

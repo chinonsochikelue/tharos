@@ -9,14 +9,15 @@ import (
 )
 
 var (
-	cfgFile      string
-	outputFormat string
-	jsonOutput   bool
-	aiEnabled    bool
-	fixMode      bool
-	verbose      bool
-	policyPath   string
-	policyDir    string
+	cfgFile         string
+	outputFormat    string
+	jsonOutput      bool
+	aiEnabled       bool
+	fixMode         bool
+	verbose         bool
+	policyPath      string
+	policyDir       string
+	interactiveMode bool
 )
 
 var rootCmd = &cobra.Command{
