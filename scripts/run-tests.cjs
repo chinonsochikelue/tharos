@@ -2,7 +2,9 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const binaryPath = path.resolve(__dirname, '../dist/tharos.exe');
+const isWindows = process.platform === 'win32';
+const binaryName = isWindows ? 'tharos.exe' : 'tharos';
+const binaryPath = path.resolve(__dirname, '../dist', binaryName);
 const vulnerableDir = path.resolve(__dirname, '../audit_samples/vulnerable');
 const safeDir = path.resolve(__dirname, '../audit_samples/safe');
 
