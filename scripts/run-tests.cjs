@@ -14,7 +14,7 @@ console.log('🚀 Starting Tharos Security Test Suite...');
 
 // 1. Build the binary
 console.log('🔨 Building Tharos binary...');
-const buildRes = spawnSync('go', ['build', '-o', '../dist/tharos.exe', '.'], {
+const buildRes = spawnSync('go', ['build', '-o', `../dist/${binaryName}`, '.'], {
     cwd: path.resolve(__dirname, '../go-core'),
     stdio: 'inherit'
 });
