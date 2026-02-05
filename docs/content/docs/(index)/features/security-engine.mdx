@@ -88,12 +88,24 @@ While the AST engine catches obvious patterns, the AI engine understands context
 ## Magic Fixes
 Tharos doesn't just find issues; it fixes them. Our "Magic Fix" technology can automatically rewrite insecure code patterns into safe alternatives.
 
+### 🎮 Interactive Mode
+The most powerful way to use Magic Fixes is through **Interactive Mode**. This allows you to review each finding and choose to fix it, have the AI explain the risk, or skip it.
+
 ```bash
-# Apply fixes from the CLI
-tharos fix src/app/login.ts
+# Start an interactive fix session
+tharos analyze . --interactive
+```
+
+### ⚡ Batch Fixes
+You can also apply all available fixes at once using the `--fix` flag.
+
+```bash
+# Apply all fixes automatically
+tharos analyze . --fix
 ```
 
 In the **Playground**, you can click the **MAGIC FIX** button to see this technology in action in real-time.
+
 
 ## Supported Languages
 Tharos provides comprehensive semantic analysis for:

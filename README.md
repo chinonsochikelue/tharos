@@ -20,7 +20,9 @@ Tharos is a specialized git commit hook scanner that acts as an intelligent gate
 Tharos's primary interface is your git workflow. It provides automated security gating that prevents high-risk code from ever leaving your machine.
 - **Pre-commit Gating**: Block commits containing secrets, SQLi, or high-risk vulnerabilities.
 - **Polyglot AST Support**: Native semantic analysis for **TypeScript, JavaScript, Go, and Python**.
+- **Interactive Magic Fixes**: Collaboratively review, fix, or explain findings in the CLI.
 - **Policy-as-Code**: Load organizational security policies from YAML (SOC2, GDPR, OWASP).
+
 - **Self-Healing Hooks**: Automatically manages and repairs git hook integrity.
 
 ### 🔒 AI-Powered Security Analysis
@@ -43,10 +45,9 @@ Tharos's primary interface is your git workflow. It provides automated security 
 
 ### 🧠 AI Provider Flexibility
 Automatic fallback chain:
-1. **Ollama** (Local, privacy-first)
-2. **Managed AI** (Zero-config cloud)
-3. **Google Gemini** (Personal API key)
-4. **Groq** (Fast, cost-effective)
+1. **Google Gemini** (Recommended, generous free tier)
+2. **Groq** (Fast & Free inference)
+3. **Managed AI** (Zero-config cloud fallback)
 
 ## 📦 Installation
 
@@ -132,9 +133,19 @@ tharos check
 # Analyze specific file
 tharos analyze src/api/auth.ts
 
-# Analyze entire project
-tharos analyze .
+# Interactive review (Fix/Explain/Skip findings)
+tharos analyze . --interactive
 ```
+
+---
+
+### 🧪 Automated Testing
+Tharos includes a built-in test suite to verify security policies and engine performance.
+```bash
+# Run the automated security test suite
+node scripts/run-tests.cjs
+```
+This suite tests Tharos against the `audit_samples/` directory, ensuring no regressions in vulnerability detection.
 
 ## 📋 Configuration
 
