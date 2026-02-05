@@ -1,51 +1,25 @@
-name: Tharos Policy Check
+name: Node.js CI
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+on: [push]
+
+permissions:
+  contents: read  #  to fetch code (actions/checkout)
 
 jobs:
-  tharos-scan:
-    name: Tharos Semantic Analysis
-    runs-on: ubuntu-latest
-
+  test:
+    strategy:
+      matrix:
+        node-version:
+          - 20
+          - 22
+          - 24
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          fetch-depth: 0
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Tharos
-        run: npm run build
-
-      - name: Install Tharos Globally
-        run: npm install -g .
-
-      - name: Run Policy Check
-        run: tharos analyze .
-        id: tharos-analyze
-
-      - name: Report Status
-        if: always()
-        run: |
-          if [ "${{ steps.tharos-analyze.outcome }}" == "success" ]; then
-            echo "✅ Tharos verification passed."
-          else
-            echo "❌ Tharos verification failed. Check the logs for semantic or security violations."
-            exit 1
-          fi
+          node-version: ${{ matrix.node-version }}
+      - run: npm --version
+      - run: npm ci --ignore-scripts
+      - run: ./test.sh
