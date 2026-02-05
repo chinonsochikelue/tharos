@@ -322,7 +322,6 @@ MIT License - see [LICENSE](LICENSE) for details
 - OWASP for security guidelines
 - Google Gemini team for AI capabilities
 - Groq for fast inference
-- Ollama for local AI support
 - The open-source community
 
 ## 💬 Support
