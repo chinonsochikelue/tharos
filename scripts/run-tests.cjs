@@ -12,6 +12,12 @@ const safeDir = path.resolve(__dirname, '../audit_samples/safe');
 
 console.log('🚀 Starting Tharos Security Test Suite...');
 
+// Ensure dist directory exists
+const distDir = path.resolve(__dirname, '../dist');
+if (!fs.existsSync(distDir)) {
+    fs.mkdirSync(distDir, { recursive: true });
+}
+
 // 1. Build the binary
 console.log('🔨 Building Tharos binary...');
 const buildRes = spawnSync('go', ['build', '-o', `../dist/${binaryName}`, '.'], {
@@ -19,8 +25,13 @@ const buildRes = spawnSync('go', ['build', '-o', `../dist/${binaryName}`, '.'], 
     stdio: 'inherit'
 });
 
+if (buildRes.error) {
+    console.error('❌ Failed to start build command:', buildRes.error);
+    process.exit(1);
+}
+
 if (buildRes.status !== 0) {
-    console.error('❌ Build failed!');
+    console.error(`❌ Build failed with exit code: ${buildRes.status}`);
     process.exit(1);
 }
 
