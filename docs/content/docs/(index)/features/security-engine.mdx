@@ -16,18 +16,21 @@ The core of Tharos is a high-performance lexer and parser written in Go. This en
 - **XSS Vulnerabilities**: Flags dangerous DOM sinks like `innerHTML`, `document.write`, and React's `dangerouslySetInnerHTML`.
 - **Insecure Routes**: Proactively identifies sensitive administrative or debug endpoints that lack authentication.
 
-## Pro-Grade Features
+## Tharos vs. General Scanners (Semgrep, etc.)
 
-### 🛡️ Scanner Mindset
-Tharos isn't just a linter; it thinks like a security engineer.
-- **Entropy Analysis**: We analyze the randomness of strings to distinguish between `const password = process.env.PASS` (safe) and `const password = "correct-horse-battery-staple"` (unsafe).
-- **Context Awareness**: The engine automatically lowers the severity of findings in `test/`, `mock/`, or `fixture/` directories to reduce noise.
-- **Intent Support**: Use `// tharos-security-ignore` to intentionally skip specific lines during security research or testing.
+While tools like Semgrep are excellent for general-purpose static analysis and CI/CD linting, Tharos is purpose-built as a **Git Hook Security Scanner**. 
+
+### 🎯 Key Differentiators
+- **Workflow Gating**: Tharos is designed to run *locally* during the pre-commit phase, acting as the final gate before code is shared.
+- **AI-Powered Semantic Understanding**: Unlike regex or simple AST pattern matching, Tharos uses LLMs to understand the *intent* of the code, significantly reducing false positives in complex logic.
+- **Self-Healing Integration**: Single-command setup (`tharos init`) that automatically manages your local git hooks.
 
 ### 🚫 Intelligent Commit Blocking
-Tharos enforces quality gates directly in your CLI or CI pipeline. The process will exit with an error code (blocking the commit/build) if it detects:
-- **≥ 1 Critical** Issue (e.g., Real Secret, SQL Injection)
-- **≥ 3 High** Issues (e.g., Insecure Routes, PII Leaks)
+Tharos enforces quality gates directly in your local development workflow. It prevents high-risk code from ever being committed if it detects:
+- **Critical Leaks**: Hardcoded secrets, API keys, or private certificates.
+- **Injection Risks**: Direct SQLi or XSS patterns in production-bound files.
+- **Policy Violations**: Failure to meet compliance standards (OWASP, SOC2).
+
 
 ### 📊 SARIF Export (Enterprise)
 Integrate Tharos into GitHub Advanced Security, GitLab, or any SARIF-compatible tool.

@@ -3,9 +3,10 @@
   
   # Tharos
 
-**AI-Powered Security & Quality Analysis for Modern Development**
+**Modern AI-Powered Git Hook Security Scanner**
 
-Tharos is a comprehensive security analysis tool that combines static code analysis with AI-powered semantic insights to catch security vulnerabilities, enforce compliance standards, and improve code quality before they reach production.
+Tharos is a specialized git commit hook scanner that acts as an intelligent gatekeeper for your codebase. It combines lightning-fast AST analysis with deep AI semantic insights to catch security vulnerabilities and leaks *before* they are committed to your repository.
+
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
@@ -15,54 +16,19 @@ Tharos is a comprehensive security analysis tool that combines static code analy
 
 ## ✨ Features
 
-### 🔒 Multi-Layer Security Analysis
-- **AST-Based Detection**: Fast, accurate pattern matching for common vulnerabilities
-- **Scanner Mindset**: Context-aware analysis that ignores test files and mock data
-- **Weighted Blocking**: Intelligent CI/CD gating based on finding severity
-- **AI Semantic Analysis**: Deep understanding of code context and intent
-- **Risk Scoring**: Automated 0-100 risk assessment for every finding
-- **SARIF Export**: Standardized reporting for GitHub Advanced Security & other tools
-- **Suggested Fixes**: AI-generated code snippets to resolve issues
+### 🛡️ Core: Intelligent Git Hooks
+Tharos's primary interface is your git workflow. It provides automated security gating that prevents high-risk code from ever leaving your machine.
+- **Pre-commit Gating**: Block commits containing secrets, SQLi, or high-risk vulnerabilities.
+- **Self-Healing Hooks**: Automatically set up and repair hooks with a single command.
+- **Deterrent Mode**: Configurable severity levels to warn or block based on risk.
 
-### 🌍 Multi-Language Support
-- TypeScript & JavaScript (including React)
-- Python
-- Go
-- Rust
-- Java
-- *More languages coming soon*
+### 🔒 AI-Powered Security Analysis
+- **AST-Based Detection**: Fast, accurate pattern matching for common vulnerabilities (SQLi, XSS, Secrets).
+- **Scanner Mindset**: Context-aware analysis that ignores test files and mock data.
+- **Weighted Gating**: Intelligent commit blocking based on cumulative finding severity.
+- **AI Semantic Analysis**: Deep understanding of code context and intent using Gemini/Groq.
+- **Suggested Fixes**: AI-generated code snippets to resolve issues instantly at commit time.
 
-### 🎯 Compliance Frameworks
-Pre-built policies for industry standards:
-- **OWASP Top 10 2021** - Web application security risks
-- **SOC 2 Type II** - Trust Services Criteria
-- **GDPR** - EU data protection compliance
-- **PCI-DSS v4.0** - Payment card security
-- **Code Quality** - Best practices and maintainability
-
-### 🚀 Multiple Integration Points
-
-#### 1. CLI Tool
-```bash
-# Initialize in your project
-tharos init
-
-# Check files before commit
-tharos check
-
-# Analyze specific file
-tharos analyze src/auth.ts
-```
-
-#### 2. Git Hooks
-Automatic pre-commit and pre-push validation with self-healing hooks
-
-#### 3. VSCode Extension
-Real-time feedback as you code:
-- Red squiggles under security issues
-- AI insights on hover
-- Quick fixes via lightbulb menu
-- Status bar integration
 
 #### 4. GitHub Actions
 ```yaml

@@ -5,7 +5,7 @@ description: Get started with Tharos in minutes.
 
 # Quickstart
 
-Tharos can be integrated into your workflow through its CLI, VSCode extension, or CI/CD pipelines.
+Get started with Tharos as your intelligent git hook scanner in minutes.
 
 ## Installation
 
@@ -27,7 +27,8 @@ tharos init
 
 This will:
 - Create a `tharos.yaml` configuration file.
-- Set up self-healing Git hooks in `.git/hooks/`.
+- Set up **intelligent git hooks** in `.git/hooks/` to intercept insecure commits.
+
 
 ### 2. Configure AI (Recommended)
 
@@ -41,17 +42,18 @@ export GEMINI_API_KEY="your_key"
 export GROQ_API_KEY="your_key"
 ```
 
-### 3. Run Your First Scan
+### 3. Verify Staged Changes
 
-Analyze your code for vulnerabilities:
+Before committing, you can manually verify that your staged files meet security standards:
 
 ```bash
-# Scan a specific file
-tharos analyze src/api/login.ts
+# Check all staged files (this is what the hook runs)
+tharos check
 
-# Scan your entire project
-tharos analyze .
+# Or analyze a specific file
+tharos analyze src/api/login.ts
 ```
+
 
 ## Continuous Analysis
 
