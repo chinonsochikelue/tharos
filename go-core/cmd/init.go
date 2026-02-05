@@ -48,7 +48,7 @@ func runInit(cmd *cobra.Command, args []string) {
 	preCommitHook := filepath.Join(hooksDir, "pre-commit")
 
 	// Hook content
-	hookContent := "#!/bin/sh\n\n# Tharos Security Scan\ntharos check\n"
+	hookContent := "#!/bin/sh\n\n# Tharos: Modern AI-Powered Git Hook Security Scanner\n# Prevents security leaks and vulnerabilities at the commit stage.\ntharos check\n"
 
 	err = os.WriteFile(preCommitHook, []byte(hookContent), 0o755)
 	if err != nil {

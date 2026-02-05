@@ -19,10 +19,11 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "tharos",
-	Short: "Tharos - AI-Powered Security & Quality Analysis",
-	Long: `Tharos is a comprehensive security analysis tool that combines 
-static code analysis with AI-powered semantic insights to catch 
-security vulnerabilities before they reach production.`,
+	Short: "Tharos - Modern AI-Powered Git Hook Security Scanner",
+	Long: `Tharos is a specialized git commit hook scanner that acts as an 
+intelligent gatekeeper for your codebase, catching security vulnerabilities 
+and leaks before they are committed.`,
+
 	Version: "0.1.0",
 }
 

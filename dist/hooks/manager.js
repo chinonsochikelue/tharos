@@ -5,8 +5,8 @@ import { promisify } from 'util';
 const execAsync = promisify(exec);
 const HOOK_CONTENT = `#!/bin/sh
 # Tharos Git Hook
-// This hook is managed by Tharos. Do not modify manually.
-// VERSION: 0.1.0
+# This hook is managed by Tharos. Do not modify manually.
+# VERSION: 0.1.1
 
 # Self-healing check
 if ! command -v tharos > /dev/null 2>&1; then
@@ -14,10 +14,8 @@ if ! command -v tharos > /dev/null 2>&1; then
   exit 0
 fi
 
-# Auto-sync policies (non-blocking)
-tharos sync > /dev/null 2>&1 &
-
-tharos check --self-heal
+# Run pre-commit security check
+tharos check
 `;
 export async function initHooks() {
     const gitDir = await findGitDir();
