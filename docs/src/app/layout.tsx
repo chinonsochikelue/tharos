@@ -96,7 +96,7 @@ export const metadata = createMetadata({
   // Twitter Card metadata
   twitter: {
     card: "summary_large_image",
-    site: "@tharos_security",
+    site: "https://tharos.vercel.app/",
     creator: "@_fluantix",
     title: "Tharos - AI-Powered Security Analysis",
     description: "Catch vulnerabilities before they reach production. Deep AST analysis + AI semantic insights.",

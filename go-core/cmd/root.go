@@ -27,7 +27,7 @@ var rootCmd = &cobra.Command{
 intelligent gatekeeper for your codebase, catching security vulnerabilities 
 and leaks before they are committed.`,
 
-	Version: "1.2.0",
+	Version: "1.3.0",
 }
 
 func Execute() {
