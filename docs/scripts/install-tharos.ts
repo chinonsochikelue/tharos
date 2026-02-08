@@ -32,13 +32,20 @@ async function main() {
     const outputPath = path.resolve(binDir, binaryName);
     const rootDistPath = path.resolve(rootDir, '../dist', binaryName);
 
-    console.log(`🔍 Checking Docs Bin: ${outputPath}`);
-    console.log(`🔍 Checking Root Dist: ${rootDistPath}`);
+    // 0. Check for the production Linux binary specifically (to ensure it's in the bundle)
+    const linuxBinaryPath = path.resolve(binDir, 'tharos');
+    if (fs.existsSync(linuxBinaryPath)) {
+        console.log(`✅ Production Linux binary found: ${linuxBinaryPath}`);
+        if (process.platform !== 'win32') fs.chmodSync(linuxBinaryPath, 0o755);
+    } else {
+        console.warn(`⚠️  Production Linux binary MISSING at: ${linuxBinaryPath}`);
+        console.warn('   The playground will not work on Vercel without this file.');
+    }
 
-    // 0. Check if it already exists in bin/ (maybe copied by root build)
+    // 1. Check if the current platform's binary already exists
     if (fs.existsSync(outputPath)) {
-        console.log(`✅ Binary already exists in docs/bin: ${outputPath}`);
-        fs.chmodSync(outputPath, 0o755);
+        console.log(`✅ Host binary already exists: ${outputPath}`);
+        if (process.platform !== 'win32') fs.chmodSync(outputPath, 0o755);
         return;
     }
 
