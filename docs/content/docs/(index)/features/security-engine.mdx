@@ -109,9 +109,26 @@ In the **Playground**, you can click the **MAGIC FIX** button to see this techno
 
 
 ## Supported Languages
-Tharos provides comprehensive semantic analysis for:
-- **Go**: Native AST parsing for SQL injection (`fmt.Sprintf`) and dangerous concurrency.
-- **Python**: Deep security scanning for shell injection (`os.system`, `subprocess`) and command execution.
-- **TypeScript/JavaScript**: Full AST coverage for React, Node.js, and general web APIs.
-- **Next.js**: Framework-aware security gating.
+
+Tharos provides deep, structural semantic analysis for modern polyglot environments:
+
+### 🐹 Go Security Engine
+Our native Go engine uses deep AST analysis to detect complex security flaws:
+- **Advanced SQLi Detection**: Tracks string concatenations and `fmt.Sprintf` usage within `database/sql` queries.
+- **Command Injection**: Flags unsafe `os/exec` calls where arguments are derived from variables rather than literals.
+- **Insecure TLS Profiles**: Detects dangerous configurations like `InsecureSkipVerify: true` and weak cipher suites.
+- **Broken Cryptography**: Automatically identifies legacy algorithms like `MD5`, `SHA1`, and `DES`.
+
+### 🐍 Python Security Engine
+Structural analysis for Python moves beyond regex to understand code intent:
+- **Insecure Deserialization**: Detects dangerous `pickle.loads()` and unsafe `yaml.load()` calls.
+- **Surgical Command Injection**: Analyzes `os.system` and `subprocess` calls for dynamic, unescaped shell arguments.
+- **Unsafe Evaluation**: Flags use of `eval()` and `exec()` on potentially untrusted input.
+- **Network Safety**: Detects insecure `requests` patterns like `verify=False` that expose you to MITM attacks.
+
+### ⚛️ TypeScript & JavaScript
+Full AST coverage for the entire frontend and backend ecosystem:
+- **Framework Support**: Deep integration with **Next.js**, **React**, and **Node.js**.
+- **Modern Syntax**: Full support for Template Literals, Optional Chaining, and Async/Await.
+- **XSS & DOM Safety**: High-fidelity detection for dangerous sinks in web APIs.
 

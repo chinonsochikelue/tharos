@@ -1,0 +1,63 @@
+name: 'Tharos Security Scanner'
+description: 'High-fidelity AI-powered security scanner for Git hooks and CI/CD.'
+author: 'collabchron'
+branding:
+  icon: 'shield'
+  color: 'orange'
+
+inputs:
+  path:
+    description: 'Path to analyze'
+    required: false
+    default: '.'
+  ai:
+    description: 'Use AI insights'
+    required: false
+    default: 'false'
+  policy:
+    description: 'Path to custom policy file'
+    required: false
+  sarif:
+    description: 'Path to save SARIF output'
+    required: false
+    default: 'results.sarif'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Install Tharos
+      shell: bash
+      run: |
+        if [ -f "${{ github.action_path }}/../go-core/main.go" ]; then
+          echo "Building Tharos from local source..."
+          cd "${{ github.action_path }}/../go-core"
+          go build -o tharos .
+          echo "$(pwd)" >> $GITHUB_PATH
+        else
+          echo "Downloading Tharos binary..."
+          # This would be a curl to a release in a real production scenario
+          # For now, we'll assume the binary is available in the repo or build from source
+          cd "${{ github.action_path }}/../go-core"
+          go build -o tharos .
+          echo "$(pwd)" >> $GITHUB_PATH
+        fi
+
+    - name: Run Tharos Analysis
+      shell: bash
+      run: |
+        FLAGS=""
+        if [ "${{ inputs.ai }}" == "true" ]; then FLAGS="$FLAGS --ai"; fi
+        if [ -n "${{ inputs.policy }}" ]; then FLAGS="$FLAGS --policy ${{ inputs.policy }}"; fi
+        
+        tharos analyze ${{ inputs.path }} $FLAGS -f sarif > ${{ inputs.sarif }} || true
+
+    - name: Upload SARIF results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif }}
+        category: tharos

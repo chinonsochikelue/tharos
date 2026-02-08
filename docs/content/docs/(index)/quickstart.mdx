@@ -56,16 +56,26 @@ tharos analyze src/api/login.ts
 ```
 
 
+### 4. Interactive Dashboard
+
+Launch the high-fidelity local dashboard to visualize findings and risk scores:
+
+```bash
+tharos ui
+```
+
 ## Continuous Analysis
 
 ### Git Hooks
 Tharos automatically checks your code during the `pre-commit` stage. If a high-risk vulnerability is detected (like a hardcoded secret), it will block the commit until fixed.
 
-### Magic Fixes
-When Tharos finds an issue, use the `fix` command to automatically remediate it:
+### GitHub Action
+Integrate Tharos into your CI/CD pipeline with one line in your workflow:
 
-```bash
-tharos fix src/vulnerable-file.js
+```yaml
+- uses: collabchron/tharos/tharos-action@v1
+  with:
+    ai: true
 ```
 
 [Read more about the Security Engine](/docs/features/security-engine)

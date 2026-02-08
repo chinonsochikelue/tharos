@@ -6,6 +6,7 @@
     "interactive-fixes",
     "vscode-extension",
     "policy-engine",
-    "reporting"
+    "reporting",
+    "github-action"
   ]
 }

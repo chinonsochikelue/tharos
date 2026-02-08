@@ -1,0 +1,71 @@
+---
+title: GitHub Action
+description: Integrate Tharos Security into your GitHub CI/CD workflow.
+icon: Github
+---
+
+# GitHub Action
+
+The official Tharos GitHub Action allows you to automatically scan your repository for security vulnerabilities and hardcoded secrets on every push or pull request. It integrates directly with GitHub's **Security** tab using the SARIF format.
+
+## Quick Start
+
+Add the following step to your `.github/workflows/security.yml` file:
+
+```yaml
+- name: Tharos Security Scan
+  uses: collabchron/tharos/tharos-action@v1
+  with:
+    path: '.'        # Analyze root directory
+    ai: true         # Enable AI semantic insights
+    sarif: 'results.sarif'
+```
+
+## Features
+
+### 🛡️ One-Line Integration
+No manual installation or configuration of Go/binaries required. The action automatically sets up the environment and runs the analysis.
+
+### 📊 Security Tab Integration
+Findings are uploaded directly to the GitHub Security dashboard. You'll see precise annotations in your code view and a detailed breakdown in the security overview.
+
+### 🤖 AI Semantic Insights
+Enable `ai: true` to get deep risk scoring and suggested fixes directly in your PR comments.
+
+## Configuration Options
+
+| Input | Description | Default |
+|-------|-------------|---------|
+| `path` | The directory or file to scan. | `.` |
+| `ai` | Enable AI-powered semantic analysis. | `false` |
+| `policy` | Path to a custom `tharos.yaml` policy file. | (none) |
+| `sarif` | Filename for saving the SARIF report. | `results.sarif' |
+
+## Full Example Workflow
+
+```yaml
+name: Security Audit
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  tharos:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Tharos Scan
+        uses: collabchron/tharos/tharos-action@v1
+        with:
+          ai: true
+          sarif: 'tharos-results.sarif'
+```

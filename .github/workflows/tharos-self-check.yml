@@ -1,0 +1,27 @@
+name: Tharos Self-Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  analyze:
+    name: Tharos Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Tharos Action (Local Test)
+        uses: ./tharos-action
+        with:
+          path: '.'
+          ai: false
+          sarif: 'tharos-results.sarif'

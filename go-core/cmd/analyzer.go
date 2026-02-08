@@ -620,6 +620,20 @@ func analyzeFile(filePath string, aiFlag bool) AnalysisResult {
 	// 1.5 Custom Regex-based Rules from tharos.yaml
 	analyzeCustomRules(content, &result, filePath)
 
+	// PRO-GRADE: Filter findings that have // tharos-security-ignore or # tharos-security-ignore
+	contentStrings := strings.Split(string(content), "\n")
+	filteredFindings := []Finding{}
+	for _, f := range result.Findings {
+		if f.Line > 0 && f.Line <= len(contentStrings) {
+			lineContent := contentStrings[f.Line-1]
+			if strings.Contains(lineContent, "tharos-security-ignore") {
+				continue // Skip this finding
+			}
+		}
+		filteredFindings = append(filteredFindings, f)
+	}
+	result.Findings = filteredFindings
+
 	// 2. Integration with AI Providers
 	if len(result.Findings) > 0 && (aiFlag || os.Getenv("THAROS_AI_AUTO_EXPLAIN") == "true") {
 		aiRes := getAIInsight(string(content), result.Findings)
@@ -738,30 +752,132 @@ func analyzeGoAST(content []byte, result *AnalysisResult, filePath string) {
 	}
 
 	ast.Inspect(f, func(n ast.Node) bool {
-		// Rule: SQL Injection in fmt.Sprintf or direct concatenation
-		if call, ok := n.(*ast.CallExpr); ok {
-			if fun, ok := call.Fun.(*ast.SelectorExpr); ok {
-				if pkg, ok := fun.X.(*ast.Ident); ok && pkg.Name == "fmt" && fun.Sel.Name == "Sprintf" {
-					if len(call.Args) > 0 {
-						if lit, ok := call.Args[0].(*ast.BasicLit); ok && lit.Kind == token.STRING {
-							query := strings.ToUpper(lit.Value)
-							if strings.Contains(query, "SELECT") || strings.Contains(query, "INSERT") || strings.Contains(query, "UPDATE") {
-								// Check if any subsequent args are variables (potentially untrusted)
-								if len(call.Args) > 1 {
-									line := fset.Position(call.Pos()).Line
+		switch node := n.(type) {
+		// Rule: Detect function calls (exec, sql, crypto)
+		case *ast.CallExpr:
+			if fun, ok := node.Fun.(*ast.SelectorExpr); ok {
+				if pkg, ok := fun.X.(*ast.Ident); ok {
+					// 1. Command Injection (os/exec)
+					if pkg.Name == "exec" && fun.Sel.Name == "Command" {
+						if len(node.Args) > 1 {
+							isLiteral := true
+							for _, arg := range node.Args[1:] {
+								if _, ok := arg.(*ast.BasicLit); !ok {
+									isLiteral = false
+									break
+								}
+							}
+							if !isLiteral {
+								line := fset.Position(node.Pos()).Line
+								result.Findings = append(result.Findings, Finding{
+									Rule:        "security.go.cmd_injection",
+									Type:        "security_code_injection",
+									Message:     "Potential Command Injection: Non-literal argument in exec.Command.",
+									Severity:    "critical",
+									Confidence:  0.8,
+									Explain:     "Passing variables directly into shell commands can lead to command injection if the input is untrusted.",
+									Remediation: "Ensure input is sanitized or use fixed argument lists.",
+									Line:        line,
+								})
+							}
+						}
+					}
+
+					// 2. Weak Cryptography (md5, sha1, des)
+					if (pkg.Name == "md5" || pkg.Name == "sha1") && fun.Sel.Name == "New" {
+						line := fset.Position(node.Pos()).Line
+						result.Findings = append(result.Findings, Finding{
+							Rule:        "security.go.weak_crypto",
+							Type:        "security_weak_crypto",
+							Message:     fmt.Sprintf("Weak cryptic algorithm detected: %s.%s", pkg.Name, fun.Sel.Name),
+							Severity:    "medium",
+							Confidence:  1.0,
+							Explain:     "MD5 and SHA1 are considered cryptographically broken and should not be used for secure hashing.",
+							Remediation: "Use SHA-256 or SHA-512 (crypto/sha256 or crypto/sha512).",
+							Line:        line,
+						})
+					}
+
+					// 3. SQL Injection (database/sql Query/Exec)
+					if fun.Sel.Name == "Query" || fun.Sel.Name == "Exec" || fun.Sel.Name == "QueryRow" {
+						if len(node.Args) > 0 {
+							// Check if first arg is a concatenation or variable
+							isUnsafe := false
+							if _, ok := node.Args[0].(*ast.BinaryExpr); ok {
+								isUnsafe = true
+							} else if ident, ok := node.Args[0].(*ast.Ident); ok {
+								// Simple tracking: if it's an ident, it's potentially unsafe
+								isUnsafe = true
+								_ = ident
+							}
+
+							if isUnsafe {
+								line := fset.Position(node.Pos()).Line
+								result.Findings = append(result.Findings, Finding{
+									Rule:        "security.go.sqli",
+									Type:        "security_sqli",
+									Message:     "Potential SQL Injection: Dynamic query detected.",
+									Severity:    "high",
+									Confidence:  0.7,
+									Explain:     "Building SQL queries with dynamic strings is prone to injection.",
+									Remediation: "Use parameterized queries (e.g. db.Query(\"SELECT...\", id)).",
+									Line:        line,
+								})
+							}
+						}
+					}
+				}
+			}
+
+		// 4. Insecure TLS (tls.Config)
+		case *ast.CompositeLit:
+			if typ, ok := node.Type.(*ast.SelectorExpr); ok {
+				if pkg, ok := typ.X.(*ast.Ident); ok && pkg.Name == "tls" && typ.Sel.Name == "Config" {
+					for _, elt := range node.Elts {
+						if kv, ok := elt.(*ast.KeyValueExpr); ok {
+							if key, ok := kv.Key.(*ast.Ident); ok && key.Name == "InsecureSkipVerify" {
+								if val, ok := kv.Value.(*ast.Ident); ok && val.Name == "true" {
+									line := fset.Position(node.Pos()).Line
 									result.Findings = append(result.Findings, Finding{
-										Rule:        "security.go.sqli",
-										Type:        "security_sqli",
-										Message:     "Potential SQL Injection: Dynamic formatting in SQL query via fmt.Sprintf.",
+										Rule:        "security.go.insecure_tls",
+										Type:        "security_insecure_transport",
+										Message:     "Insecure TLS: InsecureSkipVerify set to true.",
 										Severity:    "critical",
-										Confidence:  0.9,
-										Explain:     "Using fmt.Sprintf to build SQL queries with variables is dangerous. It bypasses parameterization and allows SQL injection.",
-										Remediation: "Use database/sql parameterized queries (e.g., db.Query('SELECT ... WHERE id = ?', id)).",
+										Confidence:  1.0,
+										Explain:     "Disabling certificate verification makes the application vulnerable to Man-in-the-Middle (MITM) attacks.",
+										Remediation: "Remove InsecureSkipVerify: true or set it to false.",
 										Line:        line,
 									})
 								}
 							}
 						}
+					}
+				}
+			}
+
+		// 5. Hardcoded Secrets in Go (String Literals)
+		case *ast.ValueSpec:
+			for i, val := range node.Values {
+				if lit, ok := val.(*ast.BasicLit); ok && lit.Kind == token.STRING {
+					cleanVal := strings.Trim(lit.Value, "\"")
+					entropy := calculateEntropy(cleanVal)
+					if entropy > 4.5 && len(cleanVal) > 20 {
+						line := fset.Position(node.Pos()).Line
+						var varName string
+						if i < len(node.Names) {
+							varName = node.Names[i].Name
+						}
+						result.Findings = append(result.Findings, Finding{
+							Rule:        "security.secret_pattern",
+							Type:        "security_credential",
+							Message:     fmt.Sprintf("Possible hardcoded secret in variable '%s'.", varName),
+							Severity:    "critical",
+							Confidence:  0.8,
+							Explain:     "High-entropy string detected in Go source code.",
+							Remediation: "Move secrets to environment variables or a secret manager.",
+							Line:        line,
+							ByteOffset:  int(node.Pos()),
+						})
 					}
 				}
 			}
@@ -771,21 +887,103 @@ func analyzeGoAST(content []byte, result *AnalysisResult, filePath string) {
 }
 
 func analyzePythonAST(content []byte, result *AnalysisResult, filePath string) {
-	// Simple Python Analysis (Regex-based for now, until we add a full parser)
 	lines := strings.Split(string(content), "\n")
-	for i, line := range lines {
-		if strings.Contains(line, "os.system(") || strings.Contains(line, "subprocess.run(") {
-			if !strings.Contains(line, "shell=False") {
-				result.Findings = append(result.Findings, Finding{
-					Rule:       "security.py.injection",
-					Type:       "security_code_injection",
-					Message:    "High-risk Python shell execution detected.",
-					Severity:   "critical",
-					Confidence: 0.8,
 
-					Explain:     "Functions like os.system or subprocess.run without shell=False are vulnerable to command injection.",
-					Remediation: "Use subprocess.run(args, shell=False) or provide arguments as a list.",
-					Line:        i + 1,
+	for i, line := range lines {
+		cleanLine := strings.Split(line, "#")[0] // Ignore comments
+		lineNum := i + 1
+
+		// 1. Insecure Deserialization (pickle, yaml)
+		if strings.Contains(cleanLine, "pickle.loads(") {
+			result.Findings = append(result.Findings, Finding{
+				Rule:        "security.py.deserialization",
+				Type:        "security_code_injection",
+				Message:     "Insecure Deserialization: pickle.loads() detected.",
+				Severity:    "critical",
+				Confidence:  1.0,
+				Explain:     "pickle.loads() can be exploited to execute arbitrary code. Untrusted data should never be unpickled.",
+				Remediation: "Use safer formats like JSON or verify the data before unpickling.",
+				Line:        lineNum,
+			})
+		}
+		if (strings.Contains(cleanLine, "yaml.load(") || strings.Contains(cleanLine, "yaml.load_all(")) &&
+			!strings.Contains(cleanLine, "SafeLoader") && !strings.Contains(cleanLine, "CSafeLoader") {
+			result.Findings = append(result.Findings, Finding{
+				Rule:        "security.py.yaml_load",
+				Type:        "security_code_injection",
+				Message:     "Unsafe YAML Load: yaml.load() without SafeLoader.",
+				Severity:    "high",
+				Confidence:  0.9,
+				Explain:     "yaml.load() defaults to unsafe loading which can execute arbitrary code in older versions. Always use SafeLoader.",
+				Remediation: "Use yaml.safe_load() or pass Loader=yaml.SafeLoader.",
+				Line:        lineNum,
+			})
+		}
+
+		// 2. Command Injection (os.system, subprocess)
+		if strings.Contains(cleanLine, "os.system(") || strings.Contains(cleanLine, "subprocess.call(") ||
+			strings.Contains(cleanLine, "subprocess.run(") {
+
+			// Detect dynamic content (variables or concatenation)
+			isDynamic := strings.Contains(cleanLine, "+") || strings.Contains(cleanLine, "f\"") ||
+				strings.Contains(cleanLine, ".format(") || strings.Contains(cleanLine, "%")
+
+			if isDynamic && !strings.Contains(cleanLine, "shell=False") {
+				result.Findings = append(result.Findings, Finding{
+					Rule:        "security.py.cmd_injection",
+					Type:        "security_code_injection",
+					Message:     "Potential Python Command Injection: Dynamic argument in shell execution.",
+					Severity:    "critical",
+					Confidence:  0.8,
+					Explain:     "Executing shell commands with dynamic input without shell=False is extremely dangerous.",
+					Remediation: "Use subprocess.run(args, shell=False) with args as a list.",
+					Line:        lineNum,
+				})
+			}
+		}
+
+		// 3. Unsafe Eval/Exec
+		if strings.Contains(cleanLine, "eval(") || strings.Contains(cleanLine, "exec(") {
+			result.Findings = append(result.Findings, Finding{
+				Rule:        "security.py.eval",
+				Type:        "security_code_injection",
+				Message:     "Unsafe Python eval() or exec() detected.",
+				Severity:    "high",
+				Confidence:  0.9,
+				Explain:     "eval() and exec() execute string input as code, which is a major security risk if the input is untrusted.",
+				Remediation: "Avoid eval/exec; use safer alternatives like ast.literal_eval() or logic-based parsing.",
+				Line:        lineNum,
+			})
+		}
+
+		// 4. Insecure Requests (verify=False)
+		if strings.Contains(cleanLine, "verify=False") {
+			result.Findings = append(result.Findings, Finding{
+				Rule:        "security.py.insecure_requests",
+				Type:        "security_insecure_transport",
+				Message:     "Insecure Network Request: verify=False detected.",
+				Severity:    "medium",
+				Confidence:  1.0,
+				Explain:     "Disabling SSL verification allows MITM attacks and exposes sensitive data.",
+				Remediation: "Remove verify=False or set it to True. Use proper CA bundles.",
+				Line:        lineNum,
+			})
+		}
+
+		// 5. Hardcoded Secrets (Python)
+		entropy := calculateEntropy(cleanLine)
+		if entropy > 4.5 && len(cleanLine) > 30 && (strings.Contains(cleanLine, "=") || strings.Contains(cleanLine, ":")) {
+			// Basic filtering to avoid flagging library names or long paths
+			if !strings.Contains(cleanLine, "http") && !strings.Contains(cleanLine, "/") {
+				result.Findings = append(result.Findings, Finding{
+					Rule:        "security.secret_pattern",
+					Type:        "security_credential",
+					Message:     "Possible hardcoded secret detected in Python code.",
+					Severity:    "critical",
+					Confidence:  0.8,
+					Explain:     "High-entropy string detected in variable assignment or literal.",
+					Remediation: "Rotate secret and move to environment variables.",
+					Line:        lineNum,
 				})
 			}
 		}
@@ -1301,6 +1499,14 @@ type SARIFDriver struct {
 type SARIFRule struct {
 	ID               string           `json:"id"`
 	ShortDescription SARIFDescription `json:"shortDescription"`
+	FullDescription  SARIFDescription `json:"fullDescription,omitempty"`
+	HelpURI          string           `json:"helpUri,omitempty"`
+	Properties       SARIFProperties  `json:"properties,omitempty"`
+}
+
+type SARIFProperties struct {
+	Precision string   `json:"precision,omitempty"`
+	Tags      []string `json:"tags,omitempty"`
 }
 
 type SARIFDescription struct {
@@ -1309,6 +1515,7 @@ type SARIFDescription struct {
 
 type SARIFResult struct {
 	RuleID    string           `json:"ruleId"`
+	RuleIndex int              `json:"ruleIndex"`
 	Level     string           `json:"level"`
 	Message   SARIFDescription `json:"message"`
 	Locations []SARIFLocation  `json:"locations"`
@@ -1328,7 +1535,8 @@ type SARIFArtifactLocation struct {
 }
 
 type SARIFRegion struct {
-	StartLine int `json:"startLine"`
+	StartLine   int `json:"startLine"`
+	StartColumn int `json:"startColumn,omitempty"`
 }
 
 func ConvertToSARIF(results []AnalysisResult) SARIFReport {
@@ -1349,7 +1557,8 @@ func ConvertToSARIF(results []AnalysisResult) SARIFReport {
 		},
 	}
 
-	ruleMap := make(map[string]bool)
+	ruleMap := make(map[string]int)
+	ruleCounter := 0
 
 	for _, res := range results {
 		for _, f := range res.Findings {
@@ -1365,20 +1574,30 @@ func ConvertToSARIF(results []AnalysisResult) SARIFReport {
 			}
 
 			// Add rule to driver if not exists
-			if !ruleMap[f.Rule] {
+			if _, exists := ruleMap[f.Rule]; !exists {
 				report.Runs[0].Tool.Driver.Rules = append(report.Runs[0].Tool.Driver.Rules, SARIFRule{
 					ID: f.Rule,
 					ShortDescription: SARIFDescription{
+						Text: f.Message,
+					},
+					FullDescription: SARIFDescription{
 						Text: f.Explain,
 					},
+					HelpURI: "https://tharos.vercel.app/docs",
+					Properties: SARIFProperties{
+						Precision: "high",
+						Tags:      []string{f.Type, "security"},
+					},
 				})
-				ruleMap[f.Rule] = true
+				ruleMap[f.Rule] = ruleCounter
+				ruleCounter++
 			}
 
 			// Add result
 			report.Runs[0].Results = append(report.Runs[0].Results, SARIFResult{
-				RuleID: f.Rule,
-				Level:  level,
+				RuleID:    f.Rule,
+				RuleIndex: ruleMap[f.Rule],
+				Level:     level,
 				Message: SARIFDescription{
 					Text: f.Message,
 				},

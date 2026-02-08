@@ -38,14 +38,19 @@ Tharos's primary interface is your git workflow. It provides automated security 
 
 
 
-#### 4. GitHub Actions
+#### 4. GitHub Actions (Official Action)
+Integrate Tharos directly into your GitHub Security dashboard:
+
 ```yaml
-- uses: actions/checkout@v3
-- name: Tharos Security Check
-  run: |
-    npm install -g tharos
-    tharos check
+- uses: actions/checkout@v4
+- name: Tharos Security Scan
+  uses: ./tharos-action # In your repo use collabchron/tharos/tharos-action@v1
+  with:
+    path: '.'
+    ai: true
+    sarif: 'results.sarif'
 ```
+This automatically uploads findings to the **Security** tab of your repository.
 
 ### 🧠 AI Provider Flexibility
 Automatic fallback chain:

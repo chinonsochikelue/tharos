@@ -8,30 +8,34 @@ icon: Flag
 
 Tharos provides flexible reporting options to suit different workflows, from local debugging to enterprise compliance auditing.
 
-## 📊 HTML Audit Reports
+## 🦊 Local Security Dashboard
 
-For a visual overview of your project's security posture, generating an HTML report is the best option. This self-contained file is perfect for sharing with stakeholders or archiving as an audit artifact.
+For the most interactive experience, Tharos provides a built-in local dashboard. This is a high-fidelity web interface that runs right from your terminal, allowing you to browse findings, visualize risk scores, and manage security patches in your browser.
 
 ```bash
-tharos analyze . --format html > audit-report.html
+# Launch the dashboard locally
+tharos ui
 ```
 
-The HTML report features:
-- **Interactive Dashboard**: Filter and sort findings by severity.
-- **Glassmorphic UI**: A premium, modern design.
-- **Zero Dependencies**: Everything is embedded in a single file—no external CSS or JS required.
+The Local Dashboard includes:
+- **Interactive File Explorer**: Navigate through your project and see security health at a glance.
+- **Vulnerability Breakdown**: Detailed explanations and remediation steps for every finding.
+- **AI Integration**: One-click "Magic Fixes" and semantic risk assessment.
+- **Modern Dark UI**: A premium, glassmorphic design optimized for security engineers.
 
-![HTML Report Screenshot](/images/html-report-demo.png)
+## 🏗️ Enterprise SARIF Integration
 
-## 🏗️ SARIF Integration
-
-Standardized integration with CI/CD platforms (GitHub Actions, GitLab CI) is achieved via the SARIF format.
+Standardized integration with CI/CD platforms like **GitHub Advanced Security** is achieved via the refined SARIF (Static Analysis Results Interchange Format) exporter.
 
 ```bash
+# Generate a professional SARIF report for CI/CD
 tharos analyze . --format sarif > results.sarif
 ```
 
-Upload this file to GitHub Advanced Security to see Tharos findings directly in your pull request annotations.
+Our SARIF output is fully compliant with industry standards and includes:
+- **Detailed Metadata**: Comprehensive descriptions, help URIs, and tags for every security rule.
+- **Stable Indexing**: Persistent rule IDs for consistent reporting across builds.
+- **Precise Location Mapping**: Exact line and column identifiers for surgical auditing.
 
 ## 💻 CLI Output Formats
 
