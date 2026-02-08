@@ -1520,7 +1520,7 @@ func getGeminiInsight(code string, findings []Finding, apiKey string) string {
 	}
 	defer client.Close()
 
-	model := client.GenerativeModel("gemini-2.0-flash")
+	model := client.GenerativeModel("gemini-2.5-flash")
 	prompt := generatePrompt(code, findings)
 
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))

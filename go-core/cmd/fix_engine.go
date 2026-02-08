@@ -264,7 +264,7 @@ func getFixFromGemini(prompt string, apiKey string) (*FixPlan, error) {
 	}
 	defer client.Close()
 
-	model := client.GenerativeModel("gemini-2.0-flash")
+	model := client.GenerativeModel("gemini-2.5-flash")
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
 		return nil, err
