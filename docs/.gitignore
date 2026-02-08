@@ -27,6 +27,7 @@ yarn-error.log*
 .env
 .vercel
 /bin/
+!/bin/tharos
 next-env.d.ts
 
 # 

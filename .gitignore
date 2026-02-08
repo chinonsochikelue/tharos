@@ -36,3 +36,4 @@ fennec-*.tgz
 
 /releases
 /docs/bin/
+!/docs/bin/tharos

@@ -54,10 +54,8 @@ async function createNextConfig(): Promise<NextConfig> {
                 },
             ]
         },
-        experimental: {
-            outputFileTracingIncludes: {
-                '/api/analyze': ['./bin/**/*', '../dist/**/*'],
-            },
+        outputFileTracingIncludes: {
+            '/api/analyze': ['./bin/**/*', '../dist/**/*'],
         },
     }
 
