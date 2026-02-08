@@ -37,3 +37,4 @@ fennec-*.tgz
 /releases
 /docs/bin/
 !/docs/bin/tharos
+!/dist/tharos-linux

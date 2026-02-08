@@ -26,13 +26,22 @@ export async function POST(req: NextRequest) {
         let tharosPath: string;
 
         if (isProd) {
+            // TRACE BYPASS: Force Next.js to include the binary in the bundle
+            // by performing a dummy read during the init phase of the request.
+            try {
+                const tracePath = path.resolve(process.cwd(), 'bin', binaryName);
+                if (await fs.stat(tracePath).then(s => s.isFile()).catch(() => false)) {
+                    // Just touching the file to force tracing
+                    await fs.open(tracePath, 'r').then(f => f.close());
+                }
+            } catch (e) { }
+
             // Vercel / Production: Hunt for the binary in multiple potential locations
             const searchPaths = [
                 path.resolve(process.cwd(), 'bin', binaryName),
-                path.resolve(process.cwd(), '../dist', binaryName),
-                path.resolve(process.cwd(), 'dist', binaryName),
-                '/var/task/docs/bin/tharos', // Hardcoded path seen in error
-                '/var/task/bin/tharos',      // Another common Vercel path
+                path.resolve(process.cwd(), '.next/server/bin', binaryName), // Common build path
+                '/var/task/docs/bin/tharos',
+                '/var/task/bin/tharos',
                 path.resolve('/tmp', binaryName)
             ];
 
@@ -51,6 +60,7 @@ export async function POST(req: NextRequest) {
 
             // 2. If not found or not executable, try to copy it to /tmp if we find a raw binary
             if (!foundPath) {
+                console.log('📦 No executable found, searching for raw binary to copy...');
                 for (const p of searchPaths) {
                     if (p === tmpBinaryPath) continue;
                     try {
@@ -68,8 +78,10 @@ export async function POST(req: NextRequest) {
                 // LAST DITCH: Search the entire /var/task for anything named "tharos"
                 console.log('🕵️ Binary not found in standard paths. Crawling filesystem...');
                 const allFiles: string[] = [];
+                const searchRoot = '/var/task';
+
                 async function crawl(dir: string, depth = 0) {
-                    if (depth > 3) return; // Don't go too deep
+                    if (depth > 2) return; // Don't go too deep
                     try {
                         const entries = await fs.readdir(dir, { withFileTypes: true });
                         for (const entry of entries) {
@@ -80,26 +92,28 @@ export async function POST(req: NextRequest) {
                                 }
                             } else {
                                 allFiles.push(fullPath);
-                                if (entry.name.toLowerCase().includes('tharos')) {
-                                    console.log(`🎯 Found potential binary match: ${fullPath}`);
-                                    // Try to use it if it's the right one
-                                    if (entry.name === binaryName || entry.name === 'tharos-linux-amd64') {
-                                        foundPath = fullPath;
-                                    }
+                                if (entry.name === binaryName || entry.name === 'tharos') {
+                                    console.log(`🎯 Found potential binary match during crawl: ${fullPath}`);
+                                    foundPath = fullPath;
                                 }
                             }
                         }
                     } catch (e) { /* ignore */ }
                 }
-                await crawl(process.cwd());
+
+                await crawl(searchRoot);
 
                 if (!foundPath) {
                     tharosPath = searchPaths[0]; // Default for error
                     const debugInfo = {
                         error: 'Analysis binary not found',
                         cwd: process.cwd(),
-                        scanned_files: allFiles.slice(0, 50), // Show first 50 files for debugging
-                        searched_paths: searchPaths
+                        scanned_files: allFiles.slice(0, 100),
+                        searched_paths: searchPaths,
+                        env: {
+                            VERCEL_ENV: process.env.VERCEL_ENV,
+                            NODE_ENV: process.env.NODE_ENV
+                        }
                     };
                     return NextResponse.json(debugInfo, { status: 500 });
                 } else {
@@ -108,7 +122,8 @@ export async function POST(req: NextRequest) {
             } else {
                 tharosPath = foundPath;
             }
-        } else {
+        }
+        else {
             // Local Dev
             tharosPath = path.resolve(process.cwd(), '../dist/tharos.exe');
         }

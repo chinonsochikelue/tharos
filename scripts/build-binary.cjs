@@ -14,21 +14,24 @@ if (!fs.existsSync(distDir)) {
 console.log('🔨 Building Tharos binary...');
 
 try {
-    // Build the Go binary for the current platform
-    const buildCmd = isWindows
-        ? 'go build -o ../dist/tharos.exe .'
-        : 'go build -o ../dist/tharos .';
-
-    execSync(buildCmd, {
+    // 1. Build host binary
+    console.log(`🔨 Building binary for host platform (${process.platform})...`);
+    const hostBinary = isWindows ? 'tharos.exe' : 'tharos';
+    execSync(`go build -o ../dist/${hostBinary} .`, {
         cwd: goCoreDir,
         stdio: 'inherit',
-        env: {
-            ...process.env,
-            CGO_ENABLED: '0' // Disable CGO for static binary
-        }
+        env: { ...process.env, CGO_ENABLED: '0' }
     });
 
-    console.log('✅ Binary built successfully!');
+    // 2. Build Linux binary (Always needed for Vercel/Production)
+    console.log('🔨 Building binary for Linux (Vercel target)...');
+    execSync('go build -o ../dist/tharos-linux .', {
+        cwd: goCoreDir,
+        stdio: 'inherit',
+        env: { ...process.env, GOOS: 'linux', GOARCH: 'amd64', CGO_ENABLED: '0' }
+    });
+
+    console.log('✅ Binaries built successfully!');
 
     // Make executable on Unix systems
     if (!isWindows) {
