@@ -1,10 +1,10 @@
-name: Tharos Self-Check
+name: Node.js CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   analyze:
