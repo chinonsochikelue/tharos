@@ -33,11 +33,23 @@ async function main() {
 
     console.log('⚙️  Building Tharos binary...');
     try {
+        // Check if go is installed
+        try {
+            await execAsync('go version');
+        } catch {
+            console.error('❌ Go is not installed in the build environment!');
+            console.error('   Please ensure Go is available in Vercel (e.g., by adding a go.mod in the docs root or custom build script).');
+            return;
+        }
+
         // Install dependencies just in case
         // await execAsync('go mod download', { cwd: goCoreDir });
 
         // Build
-        await execAsync(`go build -o "${outputPath}" .`, { cwd: goCoreDir });
+        await execAsync(`go build -o "${outputPath}" .`, {
+            cwd: goCoreDir,
+            env: { ...process.env, CGO_ENABLED: '0' }
+        });
         console.log('✅ Tharos binary built successfully!');
 
         // Verify

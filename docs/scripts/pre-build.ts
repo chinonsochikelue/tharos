@@ -7,15 +7,9 @@ async function main() {
 
   const installScript = path.resolve(process.cwd(), 'scripts/install-tharos.ts');
 
-  // Run as a separate bun process
-  const child = fork(installScript, [], { stdio: 'inherit', execPath: 'bun' });
-
-  await new Promise((resolve, reject) => {
-    child.on('exit', (code) => {
-      if (code === 0) resolve(null);
-      else reject(new Error(`install-tharos exited with code ${code}`));
-    });
-  });
+  console.log('🚀 Running Tharos installation script...');
+  const { execSync } = await import('child_process');
+  execSync(`bun ${installScript}`, { stdio: 'inherit' });
 
   // comment the below to disable openapi generation
   // await Promise.all([generateDocs()])

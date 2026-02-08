@@ -21,19 +21,32 @@ export async function POST(req: NextRequest) {
         await fs.writeFile(tempFile, code);
 
         // Path to tharos binary - adjust based on environment
-        // In dev, it's in the root dist folder. In prod (Vercel), we'll output it to the local bin folder.
         const isProd = process.env.NODE_ENV === 'production';
         const binaryName = process.platform === 'win32' ? 'tharos.exe' : 'tharos';
+        let tharosPath: string;
 
-        let tharosPath;
         if (isProd) {
             // Vercel / Production: Expect binary in local bin/ or specific path
-            tharosPath = path.resolve(process.cwd(), 'bin', binaryName);
-            // Fallback to /tmp if copied there during runtime
+            const bundledBinaryPath = path.resolve(process.cwd(), 'bin', binaryName);
+            const tmpBinaryPath = path.resolve('/tmp', binaryName);
+
             try {
-                await fs.access(tharosPath);
+                // Check if binary is already in /tmp and executable
+                await fs.access(tmpBinaryPath, fs.constants.X_OK);
+                tharosPath = tmpBinaryPath;
             } catch {
-                tharosPath = path.resolve('/tmp', binaryName);
+                // Not in /tmp or not executable, try to copy it from the bundle
+                try {
+                    await fs.access(bundledBinaryPath);
+                    await fs.copyFile(bundledBinaryPath, tmpBinaryPath);
+                    await fs.chmod(tmpBinaryPath, 0o755); // Make it executable
+                    tharosPath = tmpBinaryPath;
+                    console.log('✅ Copied Tharos binary to /tmp and set permissions');
+                } catch (copyErr: any) {
+                    console.error('❌ Failed to copy or chmod binary:', copyErr);
+                    // Fallback to bundled path just in case
+                    tharosPath = bundledBinaryPath;
+                }
             }
         } else {
             // Local Dev
@@ -83,11 +96,16 @@ export async function POST(req: NextRequest) {
             console.error('Tharos execution failed:', execError);
             return NextResponse.json({
                 error: 'Analysis failed',
-                details: execError.message
+                details: execError.message,
+                path: tharosPath,
+                cwd: process.cwd(),
             }, { status: 500 });
         }
     } catch (err: any) {
         console.error('API Error:', err);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({
+            error: 'Internal server error',
+            details: err.message
+        }, { status: 500 });
     }
 }
