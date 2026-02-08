@@ -106,10 +106,10 @@ func runAnalyze(cmd *cobra.Command, args []string) {
 			failed = true
 		}
 	} else {
-		// 2. Standard Mode: Fail on BLOCK/CRITICAL
-		if criticalCount > 0 {
+		// 2. Standard Mode: Fail on BLOCK/CRITICAL or HIGH
+		if criticalCount > 0 || highCount > 0 {
 			if !jsonOutput && outputFormat != "sarif" && outputFormat != "html" {
-				fmt.Printf("\n%s🛑 BUILD FAILED: Critical security issues detected.%s\n", colorRed, colorReset)
+				fmt.Printf("\n%s🛑 BUILD FAILED: Security issues detected.%s\n", colorRed, colorReset)
 			}
 			failed = true
 		}

@@ -353,7 +353,7 @@ func printRichOutput(result BatchResult, verboseMode bool, fixModeEnabled bool) 
 			}
 		}
 	}
-	if criticalCount >= 1 || highCount >= 3 {
+	if criticalCount >= 1 || highCount >= 1 {
 		isBlocked = true
 	}
 
@@ -817,7 +817,7 @@ func analyzeGoAST(content []byte, result *AnalysisResult, filePath string) {
 									Rule:        "security.go.sqli",
 									Type:        "security_sqli",
 									Message:     "Potential SQL Injection: Dynamic query detected.",
-									Severity:    "high",
+									Severity:    "critical",
 									Confidence:  0.7,
 									Explain:     "Building SQL queries with dynamic strings is prone to injection.",
 									Remediation: "Use parameterized queries (e.g. db.Query(\"SELECT...\", id)).",
