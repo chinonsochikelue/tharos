@@ -60,12 +60,10 @@ export async function POST(req: NextRequest) {
 
             // 2. If not found or not executable, try to copy it to /tmp if we find a raw binary
             if (!foundPath) {
-                console.log('📦 No executable found, searching for raw binary to copy...');
                 for (const p of searchPaths) {
                     if (p === tmpBinaryPath) continue;
                     try {
                         await fs.access(p);
-                        console.log(`📦 Found binary at ${p}, copying to /tmp...`);
                         await fs.copyFile(p, tmpBinaryPath);
                         await fs.chmod(tmpBinaryPath, 0o755);
                         foundPath = tmpBinaryPath;
@@ -75,50 +73,11 @@ export async function POST(req: NextRequest) {
             }
 
             if (!foundPath) {
-                // LAST DITCH: Search the entire /var/task for anything named "tharos"
-                console.log('🕵️ Binary not found in standard paths. Crawling filesystem...');
-                const allFiles: string[] = [];
-                const searchRoot = '/var/task';
-
-                async function crawl(dir: string, depth = 0) {
-                    if (depth > 2) return; // Don't go too deep
-                    try {
-                        const entries = await fs.readdir(dir, { withFileTypes: true });
-                        for (const entry of entries) {
-                            const fullPath = path.resolve(dir, entry.name);
-                            if (entry.isDirectory()) {
-                                if (!['node_modules', '.next', '.git'].includes(entry.name)) {
-                                    await crawl(fullPath, depth + 1);
-                                }
-                            } else {
-                                allFiles.push(fullPath);
-                                if (entry.name === binaryName || entry.name === 'tharos') {
-                                    console.log(`🎯 Found potential binary match during crawl: ${fullPath}`);
-                                    foundPath = fullPath;
-                                }
-                            }
-                        }
-                    } catch (e) { /* ignore */ }
-                }
-
-                await crawl(searchRoot);
-
-                if (!foundPath) {
-                    tharosPath = searchPaths[0]; // Default for error
-                    const debugInfo = {
-                        error: 'Analysis binary not found',
-                        cwd: process.cwd(),
-                        scanned_files: allFiles.slice(0, 100),
-                        searched_paths: searchPaths,
-                        env: {
-                            VERCEL_ENV: process.env.VERCEL_ENV,
-                            NODE_ENV: process.env.NODE_ENV
-                        }
-                    };
-                    return NextResponse.json(debugInfo, { status: 500 });
-                } else {
-                    tharosPath = foundPath;
-                }
+                tharosPath = searchPaths[0]; // Default for error
+                return NextResponse.json({
+                    error: 'Analysis binary not found',
+                    details: 'The Tharos engine is missing from the server environment.'
+                }, { status: 500 });
             } else {
                 tharosPath = foundPath;
             }
