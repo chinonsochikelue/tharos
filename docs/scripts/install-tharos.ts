@@ -30,8 +30,23 @@ async function main() {
 
     const binaryName = process.platform === 'win32' ? 'tharos.exe' : 'tharos';
     const outputPath = path.resolve(binDir, binaryName);
+    const rootDistPath = path.resolve(rootDir, '../dist', binaryName);
 
-    console.log('⚙️  Building Tharos binary...');
+    // 1. Try to use existing build from root dist (User's suggestion)
+    if (fs.existsSync(rootDistPath)) {
+        console.log(`📦 Found pre-built binary in root dist: ${rootDistPath}`);
+        try {
+            fs.copyFileSync(rootDistPath, outputPath);
+            fs.chmodSync(outputPath, 0o755);
+            console.log('✅ Successfully copied binary from root dist to bin/');
+            return; // Skip build if we found and copied a binary
+        } catch (err: any) {
+            console.warn(`⚠️  Failed to copy binary from root dist: ${err.message}`);
+        }
+    }
+
+    // 2. Fallback to building from source
+    console.log('⚙️  Building Tharos binary from source...');
     try {
         // Check if go is installed
         try {

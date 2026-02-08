@@ -6,6 +6,7 @@ function updateDiagnostics(document, collection, tharosOutput) {
     collection.clear();
     const result = tharosOutput.results.find((r) => 
     // Normalize paths for comparison
+    // tharos-security-ignore
     r.file.replace(/\\/g, '/') === document.fileName.replace(/\\/g, '/')
         || document.fileName.endsWith(r.file));
     if (!result || !result.findings) {

@@ -26,27 +26,48 @@ export async function POST(req: NextRequest) {
         let tharosPath: string;
 
         if (isProd) {
-            // Vercel / Production: Expect binary in local bin/ or specific path
-            const bundledBinaryPath = path.resolve(process.cwd(), 'bin', binaryName);
-            const tmpBinaryPath = path.resolve('/tmp', binaryName);
+            // Vercel / Production: Hunt for the binary in multiple potential locations
+            const searchPaths = [
+                path.resolve(process.cwd(), 'bin', binaryName),
+                path.resolve(process.cwd(), '../dist', binaryName), // If root is repo root
+                path.resolve(process.cwd(), 'dist', binaryName),    // If docs is repo root and dist was copied
+                path.resolve('/tmp', binaryName)                    // Final fallback to writable /tmp
+            ];
 
-            try {
-                // Check if binary is already in /tmp and executable
-                await fs.access(tmpBinaryPath, fs.constants.X_OK);
-                tharosPath = tmpBinaryPath;
-            } catch {
-                // Not in /tmp or not executable, try to copy it from the bundle
+            const tmpBinaryPath = path.resolve('/tmp', binaryName);
+            let foundPath = null;
+
+            // 1. Try to find an existing executable
+            for (const p of searchPaths) {
                 try {
-                    await fs.access(bundledBinaryPath);
-                    await fs.copyFile(bundledBinaryPath, tmpBinaryPath);
-                    await fs.chmod(tmpBinaryPath, 0o755); // Make it executable
-                    tharosPath = tmpBinaryPath;
-                    console.log('✅ Copied Tharos binary to /tmp and set permissions');
-                } catch (copyErr: any) {
-                    console.error('❌ Failed to copy or chmod binary:', copyErr);
-                    // Fallback to bundled path just in case
-                    tharosPath = bundledBinaryPath;
+                    await fs.access(p, fs.constants.X_OK);
+                    foundPath = p;
+                    console.log(`🔍 Found executable binary at: ${p}`);
+                    break;
+                } catch { /* continue */ }
+            }
+
+            // 2. If not found or not executable, try to copy it to /tmp if we find a raw binary
+            if (!foundPath) {
+                for (const p of searchPaths) {
+                    if (p === tmpBinaryPath) continue;
+                    try {
+                        await fs.access(p);
+                        console.log(`📦 Found binary at ${p}, copying to /tmp...`);
+                        await fs.copyFile(p, tmpBinaryPath);
+                        await fs.chmod(tmpBinaryPath, 0o755);
+                        foundPath = tmpBinaryPath;
+                        break;
+                    } catch { /* continue */ }
                 }
+            }
+
+            if (!foundPath) {
+                // Last ditch effort: search the whole task directory if needed, 
+                // but for now we'll just fail with help
+                tharosPath = searchPaths[0]; // Default to first for error message
+            } else {
+                tharosPath = foundPath;
             }
         } else {
             // Local Dev
