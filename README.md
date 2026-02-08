@@ -7,7 +7,7 @@
 
 Tharos is a specialized git commit hook scanner that acts as an intelligent gatekeeper for your codebase. It combines lightning-fast AST analysis with deep AI semantic insights to catch security vulnerabilities and leaks *before* they are committed to your repository.
 
-
+[![Node.js CI](https://github.com/chinonsochikelue/tharos/actions/workflows/tharos-check.yml/badge.svg)](https://github.com/chinonsochikelue/tharos/actions/workflows/tharos-check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Go](https://img.shields.io/badge/Go-1.21-00ADD8)](https://golang.org/)
