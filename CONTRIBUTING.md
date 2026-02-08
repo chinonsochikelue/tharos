@@ -21,26 +21,20 @@ Thank you for your interest in contributing to Tharos! 🦊
 - Write tests
 - Submit a pull request
 
-## Development Setup
-
-```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/tharos.git
+git clone https://github.com/chinonsochikelue/tharos.git
 cd tharos
 
 # Install dependencies
-npm install
+pnpm install
 
 # Build Go core
 cd go-core
-go build -o tharos-core.exe main.go
+go build -o ../dist/tharos.exe .
 cd ..
 
-# Build CLI
-npm run build
-
 # Run tests
-npm test
+node scripts/run-tests.cjs
 ```
 
 ## Code Style

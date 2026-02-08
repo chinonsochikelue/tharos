@@ -827,6 +827,27 @@ func analyzeGoAST(content []byte, result *AnalysisResult, filePath string) {
 							}
 						}
 					}
+
+					// 6. Insecure CORS (Access-Control-Allow-Origin: *)
+					if fun.Sel.Name == "Set" || fun.Sel.Name == "Add" || fun.Sel.Name == "Header" {
+						if len(node.Args) == 2 {
+							if keyLit, ok := node.Args[0].(*ast.BasicLit); ok && strings.Contains(keyLit.Value, "Access-Control-Allow-Origin") {
+								if valLit, ok := node.Args[1].(*ast.BasicLit); ok && strings.Contains(valLit.Value, "*") {
+									line := fset.Position(node.Pos()).Line
+									result.Findings = append(result.Findings, Finding{
+										Rule:        "security.go.insecure_cors",
+										Type:        "security_insecure_cors",
+										Message:     "Insecure CORS: Access-Control-Allow-Origin set to '*'.",
+										Severity:    "high",
+										Confidence:  1.0,
+										Explain:     "Allowing all origins via '*' can lead to sensitive data exposure via cross-origin requests.",
+										Remediation: "Specify allowed origins explicitly or use a robust CORS package.",
+										Line:        line,
+									})
+								}
+							}
+						}
+					}
 				}
 			}
 
@@ -986,6 +1007,43 @@ func analyzePythonAST(content []byte, result *AnalysisResult, filePath string) {
 					Remediation: "Rotate secret and move to environment variables.",
 					Line:        lineNum,
 				})
+			}
+		}
+
+		// 6. Hardcoded Passwords/Secrets in Assignments (Python)
+		if (strings.Contains(cleanLine, "=") || strings.Contains(cleanLine, ":")) && !strings.Contains(cleanLine, "==") {
+			lowerLine := strings.ToLower(cleanLine)
+			isSensitive := strings.Contains(lowerLine, "pass") || strings.Contains(lowerLine, "pwd") ||
+				strings.Contains(lowerLine, "secret") || strings.Contains(lowerLine, "token") ||
+				strings.Contains(lowerLine, "key")
+
+			if isSensitive {
+				parts := strings.Split(cleanLine, "=")
+				if len(parts) < 2 {
+					parts = strings.Split(cleanLine, ":")
+				}
+
+				if len(parts) >= 2 {
+					val := strings.TrimSpace(parts[1])
+					// If it starts and ends with quotes, it's a literal string
+					if (strings.HasPrefix(val, "\"") && strings.HasSuffix(val, "\"")) ||
+						(strings.HasPrefix(val, "'") && strings.HasSuffix(val, "'")) {
+						cleanVal := strings.Trim(val, "\"'")
+						// Length check to avoid flagging empty strings or very short names
+						if len(cleanVal) > 4 && !strings.Contains(cleanVal, "{") && !strings.Contains(cleanVal, "os.environ") {
+							result.Findings = append(result.Findings, Finding{
+								Rule:        "security.py.hardcoded_password",
+								Type:        "security_credential",
+								Message:     fmt.Sprintf("Hardcoded secret detected in Python assignment to '%s'.", strings.TrimSpace(parts[0])),
+								Severity:    "critical",
+								Confidence:  0.9,
+								Explain:     "Storing passwords or keys in plain text within source code is a major security risk.",
+								Remediation: "Use environment variables (os.getenv) or a secret manager.",
+								Line:        lineNum,
+							})
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1241,6 +1299,47 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, 
 					Line:        line,
 					ByteOffset:  offset,
 					ByteLength:  len(text),
+				}
+			}
+			return nil
+		},
+		// Rule: Insecure CORS (JS/TS)
+		func(tt js.TokenType, text string, pt js.TokenType, pText string, ppt js.TokenType, ppText string, line int, offset int, filePath string) *Finding {
+			if tt == js.StringToken || tt == js.TemplateToken {
+				if strings.Contains(text, "Access-Control-Allow-Origin") && strings.Contains(text, "*") {
+					return &Finding{
+						Rule:        "security.js.insecure_cors",
+						Type:        "security_insecure_cors",
+						Message:     "Insecure CORS: Access-Control-Allow-Origin set to '*' in JavaScript/TypeScript.",
+						Severity:    "high",
+						Confidence:  0.9,
+						Explain:     "Allowing all origins via '*' can lead to CSRF and data theft if sensitive data is involved.",
+						Remediation: "Specify explicit origins or use a robust CORS middleware like 'cors'.",
+						Line:        line,
+						ByteOffset:  offset,
+						ByteLength:  len(text),
+					}
+				}
+			}
+			return nil
+		},
+		// Rule: Missing/Insecure Headers (JS/TS)
+		func(tt js.TokenType, text string, pt js.TokenType, pText string, ppt js.TokenType, ppText string, line int, offset int, filePath string) *Finding {
+			if tt == js.StringToken || tt == js.TemplateToken {
+				lowerText := strings.ToLower(text)
+				if (strings.Contains(lowerText, "x-powered-by") || strings.Contains(lowerText, "x-content-type-options")) && strings.Contains(lowerText, "off") {
+					return &Finding{
+						Rule:        "security.js.insecure_headers",
+						Type:        "security_insecure_headers",
+						Message:     "Insecure Header Configuration: Disabling standard security protections.",
+						Severity:    "medium",
+						Confidence:  0.8,
+						Explain:     "Explicitly disabling 'X-Content-Type-Options' or leaving 'X-Powered-By' enabled exposes the tech stack and increases vulnerability to Mime-Sniffing.",
+						Remediation: "Ensure 'X-Content-Type-Options: nosniff' is set and 'X-Powered-By' is hidden.",
+						Line:        line,
+						ByteOffset:  offset,
+						ByteLength:  len(text),
+					}
 				}
 			}
 			return nil
