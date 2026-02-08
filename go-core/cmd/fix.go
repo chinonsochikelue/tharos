@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
@@ -116,11 +117,32 @@ func runInteractiveFix(results []AnalysisResult, backupMgr *BackupManager) {
 			// Get code context
 			codeContext := getCodeContext(res.File, finding.Line, 3)
 
-			// Generate AI fix
-			fmt.Printf("\n%s🧠 Generating AI fix...%s\n", colorYellow, colorReset)
+			// Generate AI fix with spinner
+			fmt.Printf("\n%s🧠 Generating AI fix...%s ", colorYellow, colorReset)
+
+			// Simple spinner animation
+			spinChars := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+			spinDone := make(chan bool)
+			go func() {
+				i := 0
+				for {
+					select {
+					case <-spinDone:
+						fmt.Print("\r" + strings.Repeat(" ", 50) + "\r")
+						return
+					default:
+						fmt.Printf("\r%s🧠 Generating AI fix... %s%s", colorYellow, spinChars[i%len(spinChars)], colorReset)
+						i++
+						time.Sleep(100 * time.Millisecond)
+					}
+				}
+			}()
+
 			fixPlan, err := GenerateFixPlanFromAI(finding, codeContext)
+			spinDone <- true
+
 			if err != nil {
-				fmt.Printf("%s❌ Failed to generate fix: %v%s\n", colorRed, err, colorReset)
+				fmt.Printf("\r%s❌ Failed to generate fix: %v%s\n", colorRed, err, colorReset)
 				skippedCount++
 				continue
 			}
@@ -129,14 +151,25 @@ func runInteractiveFix(results []AnalysisResult, backupMgr *BackupManager) {
 				fmt.Printf("%s⚠️  This fix requires manual intervention%s\n", colorYellow, colorReset)
 			}
 
-			// Show proposed fix
+			// Show confidence meter
+			confidencePct := int(fixPlan.OverallConfidence * 100)
+			confidenceBar := renderConfidenceMeter(fixPlan.OverallConfidence)
+			fmt.Printf("\n%s📊 Confidence: %s %d%%%s\n", colorCyan, confidenceBar, confidencePct, colorReset)
+
+			// Show proposed fix with enhanced diff
 			if len(fixPlan.PrimaryFixes) > 0 {
-				fmt.Printf("\n%s📝 Proposed Fix (Confidence: %.0f%%):%s\n", colorGreen, fixPlan.OverallConfidence*100, colorReset)
+				fmt.Printf("\n%s📝 Proposed Fix:%s\n", colorGreen, colorReset)
 				for _, fix := range fixPlan.PrimaryFixes {
-					fmt.Printf("  Line %d:\n", fix.Line)
-					fmt.Printf("    %s-%s %s\n", colorRed, colorReset, fix.Original)
-					fmt.Printf("    %s+%s %s\n", colorGreen, colorReset, fix.Replacement)
-					fmt.Printf("    %s💡 %s%s\n", colorGray, fix.Explanation, colorReset)
+					fmt.Printf("  %sLine %d:%s\n", colorBold, fix.Line, colorReset)
+
+					// Enhanced diff display
+					fmt.Printf("    %s-%s %s\n", colorRed+colorBold, colorReset, strings.TrimSpace(fix.Original))
+					fmt.Printf("    %s+%s %s\n", colorGreen+colorBold, colorReset, strings.TrimSpace(fix.Replacement))
+
+					// Explanation with icon
+					if fix.Explanation != "" {
+						fmt.Printf("    %s💡 %s%s\n", colorGray, fix.Explanation, colorReset)
+					}
 				}
 			}
 
@@ -303,4 +336,27 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// renderConfidenceMeter creates a visual confidence meter
+func renderConfidenceMeter(confidence float64) string {
+	totalBars := 10
+	filledBars := int(confidence * float64(totalBars))
+
+	var meter strings.Builder
+	for i := 0; i < totalBars; i++ {
+		if i < filledBars {
+			if confidence >= 0.9 {
+				meter.WriteString(colorGreen + "█" + colorReset)
+			} else if confidence >= 0.7 {
+				meter.WriteString(colorYellow + "█" + colorReset)
+			} else {
+				meter.WriteString(colorRed + "█" + colorReset)
+			}
+		} else {
+			meter.WriteString(colorGray + "░" + colorReset)
+		}
+	}
+
+	return meter.String()
 }
