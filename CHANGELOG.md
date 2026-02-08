@@ -2,6 +2,21 @@
 
 All notable changes to the Tharos project will be documented in this file.
 
+## [1.1.1] - 2026-02-08
+
+### Added
+- **Release Automation**: Automated GitHub tagging and Release creation.
+- **Community Health**: Added `SECURITY.md` and `SUPPORT.md`.
+- **Expanded Security Engine**:
+    - Go: Insecure CORS detection (`Access-Control-Allow-Origin: *`).
+    - Python: Hardcoded Password tracking in literal assignments.
+    - JS/TS: Insecure CORS and Insecure Header Configuration checks.
+- **Visual Identity**: New "Fox Guardian" brand logo.
+
+### Changed
+- Improved SARIF compliance (StartLine >= 1).
+- Hardened commit verdict logic (Critical/High findings now block commits).
+
 ## [1.1.0] - 2026-02-08
 
 ### 🚀 v1.1.0: The Enterprise Polyglot Update
