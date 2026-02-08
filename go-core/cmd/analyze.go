@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 )
+
+var strictMode bool
 
 var analyzeCmd = &cobra.Command{
 	Use:   "analyze [path]",
@@ -23,6 +27,7 @@ func init() {
 	analyzeCmd.Flags().StringVar(&policyPath, "policy", "", "path to external policy file (YAML)")
 	analyzeCmd.Flags().StringVar(&policyDir, "policy-dir", "policies", "directory for policy files")
 	analyzeCmd.Flags().BoolVarP(&interactiveMode, "interactive", "i", false, "interactive review and fix mode")
+	analyzeCmd.Flags().BoolVar(&strictMode, "strict", false, "fail on any non-info finding")
 }
 
 func runAnalyze(cmd *cobra.Command, args []string) {
@@ -68,21 +73,49 @@ func runAnalyze(cmd *cobra.Command, args []string) {
 		printRichOutput(output, verbose, fixMode)
 	}
 
-	// Exit with error code if blocking issues found
+	// Exit Enforcement Logic
+	failed := false
+
+	// Count findings by severity
 	criticalCount := 0
 	highCount := 0
+	mediumCount := 0
+	lowCount := 0
+
 	for _, r := range results {
 		for _, f := range r.Findings {
-			if f.Severity == "critical" || f.Severity == "block" {
+			switch strings.ToLower(f.Severity) {
+			case "block", "critical":
 				criticalCount++
-			} else if f.Severity == "high" {
+			case "high":
 				highCount++
+			case "medium", "warning":
+				mediumCount++
+			case "low", "info":
+				lowCount++
 			}
 		}
 	}
 
-	// 🛑 Blocking Rule: ≥1 Critical OR ≥3 High
-	if criticalCount >= 1 || highCount >= 3 {
+	// 1. Strict Mode: Fail on ANY non-info issue
+	if strictMode {
+		if criticalCount > 0 || highCount > 0 || mediumCount > 0 {
+			if !jsonOutput && outputFormat != "sarif" && outputFormat != "html" {
+				fmt.Printf("\n%s🛑 STRICT MODE: Failing build due to %d issues.%s\n", colorRed, criticalCount+highCount+mediumCount, colorReset)
+			}
+			failed = true
+		}
+	} else {
+		// 2. Standard Mode: Fail on BLOCK/CRITICAL
+		if criticalCount > 0 {
+			if !jsonOutput && outputFormat != "sarif" && outputFormat != "html" {
+				fmt.Printf("\n%s🛑 BUILD FAILED: Critical security issues detected.%s\n", colorRed, colorReset)
+			}
+			failed = true
+		}
+	}
+
+	if failed {
 		os.Exit(1)
 	}
 }

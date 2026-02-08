@@ -20,17 +20,21 @@ Tharos is a specialized git commit hook scanner that acts as an intelligent gate
 Tharos's primary interface is your git workflow. It provides automated security gating that prevents high-risk code from ever leaving your machine.
 - **Pre-commit Gating**: Block commits containing secrets, SQLi, or high-risk vulnerabilities.
 - **Polyglot AST Support**: Native semantic analysis for **TypeScript, JavaScript, Go, and Python**.
-- **Interactive Magic Fixes**: Collaboratively review, fix, or explain findings in the CLI.
+- **Interactive Magic Fixes**: Collaboratively review, fix, or explain findings in the CLI or VS Code.
 - **Policy-as-Code**: Load organizational security policies from YAML (SOC2, GDPR, OWASP).
 
-- **Self-Healing Hooks**: Automatically manages and repairs git hook integrity.
+### 🧩 VS Code Extension (v1.0.1)
+- **Zero-Config**: Bundled binaries for Windows, macOS, and Linux. No installation required.
+- **Magic Fixes**: Lightbulb icons propose AI-powered security patches directly in your editor.
+- **Precise Highlighting**: Native squiggly lines point to the exact token causing the risk.
+- **Scan-on-Open**: Instant feedback the moment you open a file.
 
 ### 🔒 AI-Powered Security Analysis
 - **AST-Based Detection**: Fast, accurate pattern matching for common vulnerabilities (SQLi, XSS, Secrets).
 - **Scanner Mindset**: Context-aware analysis that ignores test files and mock data.
 - **AI Semantic Analysis**: Deep understanding of code context and intent using Gemini/Groq.
 - **Risk Scoring**: Intelligent commit blocking based on cumulative finding severity and AI risk scores.
-- **Suggested Fixes**: AI-generated code snippets to resolve issues instantly at commit time.
+- **Suggested Fixes**: AI-generated code snippets to resolve issues instantly.
 
 
 

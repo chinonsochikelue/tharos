@@ -1,0 +1,35 @@
+# VS Code Extension
+
+The Tharos VS Code extension brings enterprise-grade security analysis directly into your development workflow.
+
+## Features
+
+### 📦 Zero-Config Experience
+Tharos comes bundled with pre-compiled binaries for **Windows, macOS, and Linux**. Unlike other security extensions, you don't need to install any external compilers or runtimes. It works out of the box.
+
+### ✨ Magic Fixes (Quick Fixes)
+When Tharos detects a vulnerability, look for the **lightbulb icon (💡)**.
+1. Hover over the red/yellow squiggly line.
+2. Click the lightbulb.
+3. Select **"✨ Tharos: Apply Magic Fix"**.
+4. The AI-generated secure patch is applied instantly.
+
+### 🎯 Precise Highlighting
+Tharos uses AST (Abstract Syntax Tree) analysis to point you to the exact line and token that triggered a policy violation. This reduces manual triaging time by showing you exactly what went wrong.
+
+### 🔄 Real-time Feedback
+- **Scan-on-Open**: Security checks run as soon as you open a file.
+- **Scan-on-Save**: Every save triggers a fresh audit to ensure no new regressions were introduced.
+
+## Configuration
+
+You can customize the extension behavior in your user settings:
+
+- `tharos.strictMode`: (Boolean) Enable to treat all findings as blocking errors.
+- `tharos.binaryPath`: (String) Optional override to use a specific `tharos` binary.
+
+## Support
+The extension supports scanning for:
+- **TypeScript / JavaScript**
+- **Go**
+- **Python**

@@ -4,6 +4,7 @@
   "pages": [
     "security-engine",
     "interactive-fixes",
+    "vscode-extension",
     "policy-engine",
     "reporting"
   ]
