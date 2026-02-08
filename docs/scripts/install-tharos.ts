@@ -32,10 +32,17 @@ async function main() {
     const outputPath = path.resolve(binDir, binaryName);
     const rootDistPath = path.resolve(rootDir, '../dist', binaryName);
 
+    console.log(`🔍 Checking Docs Bin: ${outputPath}`);
     console.log(`🔍 Checking Root Dist: ${rootDistPath}`);
-    console.log(`🎯 Target Output: ${outputPath}`);
 
-    // 1. Try to use existing build from root dist (User's suggestion)
+    // 0. Check if it already exists in bin/ (maybe copied by root build)
+    if (fs.existsSync(outputPath)) {
+        console.log(`✅ Binary already exists in docs/bin: ${outputPath}`);
+        fs.chmodSync(outputPath, 0o755);
+        return;
+    }
+
+    // 1. Try to use existing build from root dist
     if (fs.existsSync(rootDistPath)) {
         console.log(`📦 Found pre-built binary in root dist: ${rootDistPath}`);
         try {

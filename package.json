@@ -42,7 +42,7 @@
   },
   "scripts": {
     "build": "tsc && npm run build:binary",
-    "build:binary": "node scripts/build-binary.cjs",
+    "build:binary": "node scripts/build-binary.cjs && node scripts/copy-to-docs.cjs",
     "start": "node --loader ts-node/esm src/index.ts",
     "dev": "node --loader ts-node/esm src/index.ts",
     "prepare": "npm run build",

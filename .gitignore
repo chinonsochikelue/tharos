@@ -35,3 +35,4 @@ fennec-*.tgz
 .npmrc
 
 /releases
+/docs/bin/

@@ -29,9 +29,11 @@ export async function POST(req: NextRequest) {
             // Vercel / Production: Hunt for the binary in multiple potential locations
             const searchPaths = [
                 path.resolve(process.cwd(), 'bin', binaryName),
-                path.resolve(process.cwd(), '../dist', binaryName), // If root is repo root
-                path.resolve(process.cwd(), 'dist', binaryName),    // If docs is repo root and dist was copied
-                path.resolve('/tmp', binaryName)                    // Final fallback to writable /tmp
+                path.resolve(process.cwd(), '../dist', binaryName),
+                path.resolve(process.cwd(), 'dist', binaryName),
+                '/var/task/docs/bin/tharos', // Hardcoded path seen in error
+                '/var/task/bin/tharos',      // Another common Vercel path
+                path.resolve('/tmp', binaryName)
             ];
 
             const tmpBinaryPath = path.resolve('/tmp', binaryName);
