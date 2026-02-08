@@ -1303,16 +1303,32 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, 
 			}
 			return nil
 		},
-		// Rule: Insecure CORS (JS/TS)
+		// Rule: Insecure CORS (JS/TS) - Enhanced
 		func(tt js.TokenType, text string, pt js.TokenType, pText string, ppt js.TokenType, ppText string, line int, offset int, filePath string) *Finding {
 			if tt == js.StringToken || tt == js.TemplateToken {
+				// Pattern 1: Both in same string (template literals)
 				if strings.Contains(text, "Access-Control-Allow-Origin") && strings.Contains(text, "*") {
 					return &Finding{
 						Rule:        "security.js.insecure_cors",
 						Type:        "security_insecure_cors",
-						Message:     "Insecure CORS: Access-Control-Allow-Origin set to '*' in JavaScript/TypeScript.",
+						Message:     "Insecure CORS: Access-Control-Allow-Origin set to '*'.",
 						Severity:    "high",
 						Confidence:  0.9,
+						Explain:     "Allowing all origins via '*' can lead to CSRF and data theft if sensitive data is involved.",
+						Remediation: "Specify explicit origins or use a robust CORS middleware like 'cors'.",
+						Line:        line,
+						ByteOffset:  offset,
+						ByteLength:  len(text),
+					}
+				}
+				// Pattern 2: Separate tokens - header name in previous token, wildcard in current
+				if strings.Contains(pText, "Access-Control-Allow-Origin") && (text == `"*"` || text == "*" || strings.Trim(text, `"'`) == "*") {
+					return &Finding{
+						Rule:        "security.js.insecure_cors",
+						Type:        "security_insecure_cors",
+						Message:     "Insecure CORS: Access-Control-Allow-Origin set to '*'.",
+						Severity:    "high",
+						Confidence:  0.95,
 						Explain:     "Allowing all origins via '*' can lead to CSRF and data theft if sensitive data is involved.",
 						Remediation: "Specify explicit origins or use a robust CORS middleware like 'cors'.",
 						Line:        line,
@@ -1323,10 +1339,13 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, 
 			}
 			return nil
 		},
-		// Rule: Missing/Insecure Headers (JS/TS)
+		// Rule: Missing/Insecure Headers (JS/TS) - Enhanced
 		func(tt js.TokenType, text string, pt js.TokenType, pText string, ppt js.TokenType, ppText string, line int, offset int, filePath string) *Finding {
 			if tt == js.StringToken || tt == js.TemplateToken {
 				lowerText := strings.ToLower(text)
+				lowerPrev := strings.ToLower(pText)
+
+				// Pattern 1: Both in same string
 				if (strings.Contains(lowerText, "x-powered-by") || strings.Contains(lowerText, "x-content-type-options")) && strings.Contains(lowerText, "off") {
 					return &Finding{
 						Rule:        "security.js.insecure_headers",
@@ -1341,10 +1360,30 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, 
 						ByteLength:  len(text),
 					}
 				}
+
+				// Pattern 2: X-Content-Type-Options set to "none" or other insecure values
+				if strings.Contains(lowerPrev, "x-content-type-options") && (lowerText == `"none"` || lowerText == `"off"` || lowerText == `""`) {
+					return &Finding{
+						Rule:        "security.js.insecure_headers",
+						Type:        "security_insecure_headers",
+						Message:     "Insecure Header: X-Content-Type-Options set to insecure value.",
+						Severity:    "medium",
+						Confidence:  0.9,
+						Explain:     "X-Content-Type-Options should be set to 'nosniff' to prevent MIME-type sniffing attacks.",
+						Remediation: "Set 'X-Content-Type-Options: nosniff' to protect against MIME confusion attacks.",
+						Line:        line,
+						ByteOffset:  offset,
+						ByteLength:  len(text),
+					}
+				}
 			}
 			return nil
 		},
 	}
+
+	// Sliding window buffer for recent string tokens (for multi-token pattern matching)
+	recentStrings := make([]string, 0, 10)
+	recentLines := make([]int, 0, 10)
 
 	for {
 		tt, data := lexer.Next()
@@ -1370,6 +1409,56 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, 
 		if tt == js.CommentToken {
 			if strings.Contains(text, "tharos-security-ignore") {
 				ignoreLine = currentLine + 1
+			}
+		}
+
+		// Track recent string tokens for multi-token patterns
+		if tt == js.StringToken || tt == js.TemplateToken {
+			recentStrings = append(recentStrings, text)
+			recentLines = append(recentLines, currentLine)
+			if len(recentStrings) > 10 {
+				recentStrings = recentStrings[1:]
+				recentLines = recentLines[1:]
+			}
+
+			// Check for CORS pattern in recent strings
+			for i := len(recentStrings) - 2; i >= 0 && i >= len(recentStrings)-5; i-- {
+				if strings.Contains(recentStrings[i], "Access-Control-Allow-Origin") {
+					trimmed := strings.Trim(text, `"'`)
+					if trimmed == "*" {
+						result.Findings = append(result.Findings, Finding{
+							Rule:        "security.js.insecure_cors",
+							Type:        "security_insecure_cors",
+							Message:     "Insecure CORS: Access-Control-Allow-Origin set to '*'.",
+							Severity:    "high",
+							Confidence:  0.95,
+							Explain:     "Allowing all origins via '*' can lead to CSRF and data theft if sensitive data is involved.",
+							Remediation: "Specify explicit origins or use a robust CORS middleware like 'cors'.",
+							Line:        currentLine,
+							ByteOffset:  byteOffset,
+							ByteLength:  len(text),
+						})
+						break
+					}
+				}
+				if strings.Contains(strings.ToLower(recentStrings[i]), "x-content-type-options") {
+					trimmed := strings.ToLower(strings.Trim(text, `"'`))
+					if trimmed == "none" || trimmed == "off" || trimmed == "" {
+						result.Findings = append(result.Findings, Finding{
+							Rule:        "security.js.insecure_headers",
+							Type:        "security_insecure_headers",
+							Message:     "Insecure Header: X-Content-Type-Options set to insecure value.",
+							Severity:    "medium",
+							Confidence:  0.9,
+							Explain:     "X-Content-Type-Options should be set to 'nosniff' to prevent MIME-type sniffing attacks.",
+							Remediation: "Set 'X-Content-Type-Options: nosniff' to protect against MIME confusion attacks.",
+							Line:        currentLine,
+							ByteOffset:  byteOffset,
+							ByteLength:  len(text),
+						})
+						break
+					}
+				}
 			}
 		}
 
