@@ -32,14 +32,17 @@ async function main() {
     const outputPath = path.resolve(binDir, binaryName);
     const rootDistPath = path.resolve(rootDir, '../dist', binaryName);
 
+    console.log(`🔍 Checking Root Dist: ${rootDistPath}`);
+    console.log(`🎯 Target Output: ${outputPath}`);
+
     // 1. Try to use existing build from root dist (User's suggestion)
     if (fs.existsSync(rootDistPath)) {
         console.log(`📦 Found pre-built binary in root dist: ${rootDistPath}`);
         try {
             fs.copyFileSync(rootDistPath, outputPath);
             fs.chmodSync(outputPath, 0o755);
-            console.log('✅ Successfully copied binary from root dist to bin/');
-            return; // Skip build if we found and copied a binary
+            console.log(`✅ Successfully copied binary to ${outputPath}`);
+            return;
         } catch (err: any) {
             console.warn(`⚠️  Failed to copy binary from root dist: ${err.message}`);
         }
@@ -50,34 +53,30 @@ async function main() {
     try {
         // Check if go is installed
         try {
-            await execAsync('go version');
+            const { stdout: goVer } = await execAsync('go version');
+            console.log(`📟 Go version: ${goVer.trim()}`);
         } catch {
             console.error('❌ Go is not installed in the build environment!');
-            console.error('   Please ensure Go is available in Vercel (e.g., by adding a go.mod in the docs root or custom build script).');
+            console.error('   Please ensure Go is available in Vercel.');
             return;
         }
 
-        // Install dependencies just in case
-        // await execAsync('go mod download', { cwd: goCoreDir });
-
         // Build
+        console.log(`🚀 Executing: go build -o "${outputPath}" . in ${goCoreDir}`);
         await execAsync(`go build -o "${outputPath}" .`, {
             cwd: goCoreDir,
             env: { ...process.env, CGO_ENABLED: '0' }
         });
-        console.log('✅ Tharos binary built successfully!');
 
-        // Verify
         if (fs.existsSync(outputPath)) {
-            console.log(`📦 Binary located at: ${outputPath}`);
+            console.log(`✅ Binary built successfully at: ${outputPath}`);
+            fs.chmodSync(outputPath, 0o755);
         } else {
-            console.error('❌ Binary file missing after build!');
-            process.exit(1);
+            console.error('❌ Binary built but not found at output path!');
         }
 
     } catch (error: any) {
         console.error('❌ Failed to build Tharos binary:', error.message);
-        // process.exit(1); // Don't fail build for now, might be just docs deployment
     }
 }
 

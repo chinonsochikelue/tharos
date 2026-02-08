@@ -63,9 +63,46 @@ export async function POST(req: NextRequest) {
             }
 
             if (!foundPath) {
-                // Last ditch effort: search the whole task directory if needed, 
-                // but for now we'll just fail with help
-                tharosPath = searchPaths[0]; // Default to first for error message
+                // LAST DITCH: Search the entire /var/task for anything named "tharos"
+                console.log('🕵️ Binary not found in standard paths. Crawling filesystem...');
+                const allFiles: string[] = [];
+                async function crawl(dir: string, depth = 0) {
+                    if (depth > 3) return; // Don't go too deep
+                    try {
+                        const entries = await fs.readdir(dir, { withFileTypes: true });
+                        for (const entry of entries) {
+                            const fullPath = path.resolve(dir, entry.name);
+                            if (entry.isDirectory()) {
+                                if (!['node_modules', '.next', '.git'].includes(entry.name)) {
+                                    await crawl(fullPath, depth + 1);
+                                }
+                            } else {
+                                allFiles.push(fullPath);
+                                if (entry.name.toLowerCase().includes('tharos')) {
+                                    console.log(`🎯 Found potential binary match: ${fullPath}`);
+                                    // Try to use it if it's the right one
+                                    if (entry.name === binaryName || entry.name === 'tharos-linux-amd64') {
+                                        foundPath = fullPath;
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+                await crawl(process.cwd());
+
+                if (!foundPath) {
+                    tharosPath = searchPaths[0]; // Default for error
+                    const debugInfo = {
+                        error: 'Analysis binary not found',
+                        cwd: process.cwd(),
+                        scanned_files: allFiles.slice(0, 50), // Show first 50 files for debugging
+                        searched_paths: searchPaths
+                    };
+                    return NextResponse.json(debugInfo, { status: 500 });
+                } else {
+                    tharosPath = foundPath;
+                }
             } else {
                 tharosPath = foundPath;
             }
