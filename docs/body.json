@@ -1,0 +1,4 @@
+{
+    "code": "eval('evil')",
+    "ai": true
+}

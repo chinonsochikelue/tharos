@@ -33,7 +33,7 @@ func runUI(cmd *cobra.Command, args []string) {
 		scanPath = args[0]
 	}
 
-	fmt.Printf("%s🦊 Tharos is preparing your dashboard...%s\n", colorCyan, colorReset)
+	fmt.Printf("%s🛡️ Tharos is preparing your dashboard...%s\n", colorCyan, colorReset)
 	start := time.Now()
 	results := analyzePath(scanPath, aiEnabled)
 	duration := time.Since(start)
@@ -122,12 +122,12 @@ const dashboardTemplate = `
         <!-- Header -->
         <header class="flex justify-between items-center mb-10">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-                    <i data-lucide="shield-alert" class="text-white w-6 h-6"></i>
+                <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <i data-lucide="shield-check" class="text-white w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">THAROS <span class="text-orange-500">DASHBOARD</span></h1>
-                    <p class="text-slate-400 text-sm">Local Project Security Analysis</p>
+                    <h1 class="text-2xl font-black italic tracking-tighter">THAROS <span class="text-orange-500">DASHBOARD</span></h1>
+                    <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest opacity-50">Local Security Analysis Engine</p>
                 </div>
             </div>
             <div id="summary-badges" class="flex gap-4">
@@ -197,7 +197,7 @@ const dashboardTemplate = `
                 </div>
                 <div class="flex justify-between items-center text-xs">
                     <span class="text-slate-500">LINE <span class="finding-line">--</span></span>
-                    <button class="text-orange-500 font-bold hover:underline">Magic Fix 🦊</button>
+                    <button class="text-orange-500 font-bold hover:underline">Magic Fix ✨</button>
                 </div>
             </div>
         </div>

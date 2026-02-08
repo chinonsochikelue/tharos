@@ -17,6 +17,13 @@ const app = express();
 
 app.use(express.json());
 
+// ❌ Insecure CORS: Allowing any origin
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("X-Content-Type-Options", "none"); // ❌ Insecure Header
+  next();
+});
+
 // ❌ Hard-coded DB credentials
 const db = mysql.createConnection({
   host: "localhost",
@@ -27,16 +34,12 @@ const db = mysql.createConnection({
 
 db.connect();
 
-// ❌ Insecure login endpoint (SQL Injection + plain text passwords)
+// ❌ Insecure login endpoint (SQL Injection)
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
   // ❌ Direct variable interpolation (SQL Injection)
-  const query = \`
-    SELECT * FROM users
-    WHERE email = '\${email}'
-    AND password = '\${password}'
-  \`;
+  const query = \`SELECT * FROM users WHERE email = '\${email}'\`;
 
   db.query(query, (err, results) => {
     if (err) {
@@ -44,6 +47,10 @@ app.post("/login", (req, res) => {
     }
 
     if (results.length > 0) {
+      // ❌ DOM-like vulnerability (re-routing data)
+      const message = "<h1>Welcome, " + results[0].name + "</h1>";
+      // This line is client-side JS, but for demo purposes, imagine it's rendered server-side
+      // document.body.innerHTML = message;
       res.json({
         success: true,
         message: "Logged in successfully",
@@ -172,7 +179,7 @@ export function Playground() {
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-fd-muted/50 border border-fd-border text-[10px] md:text-xs font-medium">
                         <div className={`w-2 h-2 rounded-full ${isScanning || isFixing ? 'bg-orange-500 animate-pulse' : 'bg-green-500'}`} />
-                        <span className="hidden xs:inline">Engine:</span> Go v1.0.2
+                        <span className="hidden xs:inline">Engine:</span> Go v1.1.1
                     </div>
                 </div>
             </header>

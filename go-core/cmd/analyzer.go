@@ -307,7 +307,7 @@ func printRichOutput(result BatchResult, verboseMode bool, fixModeEnabled bool) 
 	fmt.Println(t.Render())
 	fmt.Println()
 
-	// 🤖 AI Insights & Fixes (if verbose or AI enabled)
+	// � AI Insights & Fixes (if verbose or AI enabled)
 	if verboseMode || len(result.Results) > 0 {
 		aiHeaderStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("99")) // Purple-ish
 
@@ -315,7 +315,7 @@ func printRichOutput(result BatchResult, verboseMode bool, fixModeEnabled bool) 
 			if len(r.AIInsights) > 0 {
 				fmt.Println(fileStyle.Render(r.File))
 				for _, ai := range r.AIInsights {
-					fmt.Printf(" %s %s\n", aiHeaderStyle.Render("🤖 AI Insight:"), "Recommendation")
+					fmt.Printf(" %s %s\n", aiHeaderStyle.Render("🧠 AI Insight:"), "Recommendation")
 					renderedRec, _ := renderMarkdown(ai.Recommendation)
 					fmt.Println(indentMultiline(renderedRec, "    "))
 
@@ -563,7 +563,7 @@ func walkAndAnalyze(root string, aiFlag bool) []AnalysisResult {
 		if d.IsDir() {
 
 			name := d.Name()
-			if name == "node_modules" || name == ".git" || name == "dist" || name == "build" {
+			if name == "node_modules" || name == ".git" || name == "dist" || name == "build" || name == ".next" || name == "bin" || name == ".vercel" {
 				return filepath.SkipDir
 			}
 			return nil
