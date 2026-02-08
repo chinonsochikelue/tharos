@@ -35,6 +35,5 @@ fennec-*.tgz
 .npmrc
 
 /releases
-/docs/bin/
+/docs/bin/*
 !/docs/bin/tharos
-!/dist/tharos-linux
