@@ -602,6 +602,7 @@ func analyzeFile(filePath string, aiFlag bool) AnalysisResult {
 			Type:     "error",
 			Message:  fmt.Sprintf("Could not read file: %v", err),
 			Severity: "block",
+			Line:     1,
 		})
 		return result
 	}
@@ -1257,6 +1258,7 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, 
 					Message:  fmt.Sprintf("Lexer Remark: Non-critical character encountered (%v)", lexer.Err()),
 					Severity: "info",
 					Explain:  "The lexer encountered a character it wasn't expecting, often decorative icons or complex regex. This is ignored for security purposes.",
+					Line:     1,
 				})
 			}
 			break
@@ -1608,7 +1610,12 @@ func ConvertToSARIF(results []AnalysisResult) SARIFReport {
 								URI: res.File,
 							},
 							Region: SARIFRegion{
-								StartLine: f.Line,
+								StartLine: func() int {
+									if f.Line < 1 {
+										return 1
+									}
+									return f.Line
+								}(),
 							},
 						},
 					},
