@@ -128,7 +128,7 @@ export const metadata = createMetadata({
     other: [
       {
         rel: 'mask-icon',
-        url: '/icons/favicon.svg',
+        url: '/icons/favicon.ico',
       }
     ]
   },

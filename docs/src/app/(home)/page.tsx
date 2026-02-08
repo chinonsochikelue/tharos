@@ -118,7 +118,7 @@ export default function HomePage() {
 
         <div className="relative z-10 text-center max-w-[1000px]">
           <div className="inline-block px-6 py-1.5 rounded-full glass border border-cyan-neon/40 text-cyan-neon text-xs font-bold tracking-[0.2em] mb-8 opacity-0 translate-y-2 animate-[fadeUp_0.7s_ease-out_forwards_0.2s]">
-            SYSTEM ENGINE RELOADED • V0.1.5
+            SYSTEM ENGINE RELOADED • V1.0.2
           </div>
           <h1 className="text-7xl md:text-9xl font-black mb-6 tracking-tighter leading-[0.9] opacity-0 translate-y-4 animate-[fadeUp_0.7s_ease-out_forwards_0.4s]">
             <span className="bg-linear-to-br from-white via-cyan-neon to-purple-neon bg-clip-text text-transparent neon-text-cyan">
@@ -286,7 +286,7 @@ export default function HomePage() {
               </p>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[10px] font-bold tracking-widest text-green-500 uppercase">Go Engine Online • v0.1.5-stable</span>
+                <span className="text-[10px] font-bold tracking-widest text-green-500 uppercase">Go Engine Online • v1.0.2-stable</span>
               </div>
             </div>
 

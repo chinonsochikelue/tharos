@@ -172,7 +172,7 @@ export function Playground() {
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-fd-muted/50 border border-fd-border text-[10px] md:text-xs font-medium">
                         <div className={`w-2 h-2 rounded-full ${isScanning || isFixing ? 'bg-orange-500 animate-pulse' : 'bg-green-500'}`} />
-                        <span className="hidden xs:inline">Engine:</span> Go v0.1.5
+                        <span className="hidden xs:inline">Engine:</span> Go v1.0.2
                     </div>
                 </div>
             </header>

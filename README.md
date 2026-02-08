@@ -23,7 +23,7 @@ Tharos's primary interface is your git workflow. It provides automated security 
 - **Interactive Magic Fixes**: Collaboratively review, fix, or explain findings in the CLI or VS Code.
 - **Policy-as-Code**: Load organizational security policies from YAML (SOC2, GDPR, OWASP).
 
-### 🧩 VS Code Extension (v1.0.1)
+### 🧩 VS Code Extension (v1.0.2)
 - **Zero-Config**: Bundled binaries for Windows, macOS, and Linux. No installation required.
 - **Magic Fixes**: Lightbulb icons propose AI-powered security patches directly in your editor.
 - **Precise Highlighting**: Native squiggly lines point to the exact token causing the risk.
@@ -218,26 +218,27 @@ Tharos includes comprehensive pre-built policies:
 │           Tharos Ecosystem              │
 ├─────────────────────────────────────────┤
 │                                         │
-│  ┌──────────┐  ┌──────────┐  ┌───────┐│
-│  │   CLI    │  │  VSCode  │  │GitHub ││
-│  │   Tool   │  │Extension │  │Action ││
-│  └────┬─────┘  └────┬─────┘  └───┬───┘│
-│       │             │             │    │
-│       └─────────────┼─────────────┘    │
-│                     │                  │
-│            ┌────────▼────────┐         │
-│            │  tharos-core    │         │
-│            │  (Go Binary)    │         │
-│            │  - AST Analysis │         │
-│            │  - AI Integration│        │
-│            └────────┬────────┘         │
-│                     │                  │
-│       ┌─────────────┼─────────────┐   │
-│       │             │             │   │
-│  ┌────▼────┐  ┌────▼────┐  ┌────▼───┐│
-│  │ Ollama  │  │ Gemini  │  │  Groq  ││
-│  │ (Local) │  │ (Cloud) │  │(Cloud) ││
-│  └─────────┘  └─────────┘  └────────┘│
+│  ┌──────────┐  ┌──────────┐  ┌───────┐  │
+│  │   CLI    │  │  VSCode  │  │GitHub │  │
+│  │   Tool   │  │Extension │  │Action │  │
+│  └────┬─────┘  └────┬─────┘  └───┬───┘  │
+│       │             │             │     │
+│       └─────────────┼─────────────┘     │
+│                     │                   │
+│            ┌────────▼────────┐          │
+│            │  tharos-core    │          │
+│            │  (Go Binary)    │          │
+│            │ - AST Analysis  │          │
+│            │ - AI Integration│          │
+│            └────────┬────────┘          │
+│                     │                   │
+│                     │                   │
+│       ┌───────────────────────────┐     │
+│       │                           │     │
+│  ┌────▼────┐                 ┌────▼───┐ │
+│  │ Gemini  │                 │  Groq  │ │
+│  │ (Cloud) │                 │(Cloud) │ │
+│  └─────────┘                 └────────┘ │
 └─────────────────────────────────────────┘
 ```
 
@@ -300,8 +301,6 @@ export THAROS_MANAGED_KEY="your-enterprise-key"
 # Code quality focus
 tharos init
 cp policies/code-quality.yaml tharos.yaml
-# Use local Ollama (no API keys needed)
-ollama serve
 ```
 
 ## 🔐 Security
@@ -345,6 +344,7 @@ MIT License - see [LICENSE](LICENSE) for details
 - **Issues**: [GitHub Issues](https://github.com/chinonsochikelue/tharos/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/chinonsochikelue/tharos/discussions)
 - **Discord**: [Join our community](https://discord.gg/tharos)
+- **Sponsor**: [GitHub Sponsors](https://github.com/sponsors/chinonsochikelue)
 
 ---
 
