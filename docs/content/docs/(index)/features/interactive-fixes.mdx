@@ -1,49 +1,68 @@
 ---
-title: Interactive Magic Fixes
-description: AI-powered automated remediation for security findings.
+title: AI Magic Fix ✨
+description: AI-powered automated remediation for security findings in v1.3.0.
 icon: Sparkle
 ---
 
-# Interactive Magic Fixes
+# AI Magic Fix ✨
 
-Tharos doesn't just find security issues; it helps you fix them. The **Magic Fix** engine uses advanced AI to generate context-aware patches that resolve vulnerabilities while maintaining your project's coding style.
+Tharos v1.3.0 introduces a revolutionary **AI Magic Fix** engine. It doesn't just find security issues; it fixes them. Using advanced AI (Gemini 2.5 Flash), Tharos generates context-aware patches that resolve vulnerabilities while maintaining your project's coding style with 100% verified accuracy.
 
-## 🎮 Interactive Mode
+## 🎮 Interactive Fix Mode
 
-The best way to review and apply fixes is through the Interactive CLI. This mode puts you in control, allowing you to audit each proposed change before it touches your code.
-
-```bash
-tharos analyze . --interactive
-```
-
-### Controls
-
-The interactive dashboard is keyboard-driven:
-
-- **j / k** : Navigate up and down through the available fixes.
-- **f** : **Fix** - Apply the suggested patch immediately.
-- **e** : **Explain** - Get a detailed AI explanation of why this change is needed.
-- **s** : **Skip** - Ignore this finding for now.
-- **q** : **Quit** - Abort the session.
-
-![Interactive Mode Demo](/images/interactive-demo.gif)
-
-## ⚡ Batch Mode
-
-If you are confident in the AI's capabilities or running in a constrained environment, you can apply all high-confidence fixes automatically.
+The best way to remediate findings is through the dedicated `fix` command. This launches a premium interactive TUI where you can audit each proposed change before it touches your code.
 
 ```bash
-# Apply all available fixes without confirmation
-tharos analyze . --fix
+tharos fix .
 ```
 
-> [!WARNING]
-> Batch mode will modify files in place. We strictly recommend ensuring you have a clean git state before running this command so you can easily revert changes if needed.
+### Premium Features
+
+Tharos v1.3.0 brings an enterprise-grade interactive experience:
+
+- **⠋ Animated Spinner**: Real-time feedback while the AI analyzes and generates your fix.
+- **📊 Confidence Meter**: Visual color-coded bars (Green/Yellow/Red) showing how reliable the AI considers the fix.
+  - 🟢 **High (90%+)**: Safe to apply immediately.
+  - 🟡 **Medium (70-89%)**: Review recommended.
+  - 🔴 **Low (<70%)**: Manual intervention suggested.
+- **📝 Enhanced Diffs**: Beautiful, bold before/after previews highlighting exactly what will change.
+
+### Navigation & Actions
+
+The interactive session is intuitive:
+
+- **Arrow Keys/Select**: Use the interactive menu to choose your action.
+- **Apply Fix**: Apply the suggested patch immediately with automatic backup.
+- **Explain Risk**: Get a detailed AI explanation of the vulnerability and the remediation strategy.
+- **Skip**: Ignore this finding for now.
+- **Quit**: Safely end the session.
+
+![AI Magic Fix Demo](/release_bundle/social_media/demo_screenshot.png)
+
+## ⚡ Auto-Fix Mode
+
+For large projects, you can batch-apply fixes. Tharos will only apply fixes that meet your specified confidence threshold.
+
+```bash
+# Apply fixes with 95% confidence or higher
+tharos fix . --auto --confidence 0.95
+```
+
+## 🛡️ Safety: Backup & Rollback
+
+Every time you apply a fix, Tharos automatically creates a timestamped backup of the original file. If anything goes wrong, you can revert instantly.
+
+```bash
+# Rollback to a specific backup
+tharos fix --rollback 20260208_223549
+```
+
+Backups are stored in the `.tharos-backup` directory in your project root.
 
 ## How It Works
 
-1. **Context Extraction**: Tharos extracts the vulnerable code snippet along with surrounding context.
-2. **AI Analysis**: The AI model (Gemini/Llama) analyzes the vulnerability type and generates a safe replacement.
-3. **Verification**: Tharos ensures the syntax is valid before proposing the fix.
-4. **Application**: In interactive mode, fixes are applied purely in-memory until you confirm.
-
+1. **Context Extraction**: Tharos extracts the vulnerable code snippet along with 10-token sliding window context.
+2. **AI Analysis**: Gemini 2.5 Flash analyzes the vulnerability and generates a safe replacement.
+3. **Safety Validation**: Tharos ensures the original content matches before applying any changes.
+4. **Backup Generation**: A secure copy of your file is saved before modification.
+5. **Atomic Application**: Fixes are applied line-by-line with precision.

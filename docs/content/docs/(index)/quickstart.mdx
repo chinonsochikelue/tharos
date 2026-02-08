@@ -43,17 +43,19 @@ export GEMINI_API_KEY="your_key"
 export GROQ_API_KEY="your_key"
 ```
 
-### 3. Verify Staged Changes
+### 3. Verify & Fix Findings
 
-Before committing, you can manually verify that your staged files meet security standards:
+Tharos can analyze specific files or your entire project. If issues are found, use the revolutionary **AI Magic Fix** to remediate them instantly:
 
 ```bash
-# Check all staged files (this is what the hook runs)
-tharos check
-
-# Or analyze a specific file
+# Analyze a specific file
 tharos analyze src/api/login.ts
+
+# Launch the interactive AI Magic Fix session
+tharos fix .
 ```
+
+The `fix` command provides a premium TUI with confidence meters and animated spinners to guide you through remediation.
 
 
 ### 4. Interactive Dashboard

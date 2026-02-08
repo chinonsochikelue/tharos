@@ -15,6 +15,7 @@ The core of Tharos is a high-performance lexer and parser written in Go. This en
 - **SQL Injection**: Detects direct string interpolation into SQL commands, including support for complex template literals.
 - **Hardcoded Secrets**: Uses **entropy analysis** and pattern matching to catch real secrets (e.g., API keys) while ignoring safe variable names.
 - **XSS Vulnerabilities**: Flags dangerous DOM sinks like `innerHTML`, `document.write`, and React's `dangerouslySetInnerHTML`.
+- **Multi-Token Detection (v1.3.0)**: Uses a 10-token sliding window buffer to catch complex configurations like `res.header("Access-Control-Allow-Origin", "*")` where names and values are separate tokens.
 - **Insecure Routes**: Proactively identifies sensitive administrative or debug endpoints that lack authentication.
 
 ## Custom Security Rules (Regex-Based)
@@ -80,7 +81,7 @@ Tharos features a high-fidelity terminal UI designed for high-stakes decision ma
 
 ## AI Semantic Analysis
 
-While the AST engine catches obvious patterns, the AI engine understands context. By leveraging models like **Gemini 1.5 Pro** and **Llama 3 (via Groq)**, Tharos can:
+While the AST engine catches obvious patterns, the AI engine understands context. By leveraging models like **Gemini 2.5 Flash** and **Llama 3 (via Groq)**, Tharos can:
 
 1. **Calculate Risk Scores**: Goes beyond "True/False" to provide a confidence level and risk probability for every finding.
 2. **Contextualize Vulnerabilities**: Distinguishes between a "test" password in a mock file and a real hardcoded credential in a production config.
@@ -90,11 +91,11 @@ While the AST engine catches obvious patterns, the AI engine understands context
 Tharos doesn't just find issues; it fixes them. Our "Magic Fix" technology can automatically rewrite insecure code patterns into safe alternatives.
 
 ### 🎮 Interactive Mode
-The most powerful way to use Magic Fixes is through **Interactive Mode**. This allows you to review each finding and choose to fix it, have the AI explain the risk, or skip it.
+The most powerful way to use Magic Fixes is through the dedicated **Interactive Fix Mode**. This allows you to review each finding and choose to fix it, have the AI explain the risk, or skip it.
 
 ```bash
 # Start an interactive fix session
-tharos analyze . --interactive
+tharos fix .
 ```
 
 ### ⚡ Batch Fixes
