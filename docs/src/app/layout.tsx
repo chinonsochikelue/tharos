@@ -50,6 +50,9 @@ export const metadata = createMetadata({
     "static analysis",
     "sast",
     "ai security",
+    "ai magic fix",
+    "automated remediation",
+    "gemini 2.5 security",
     "code quality",
     "devsecops",
     "golang",
@@ -84,10 +87,10 @@ export const metadata = createMetadata({
     siteName: "Tharos Security",
     images: [
       {
-        url: "/banner_logo.png",
+        url: "/release_bundle/social_media/twitter_banner.png",
         width: 1200,
         height: 630,
-        alt: "Tharos Security Engine",
+        alt: "Tharos v1.3.0 - AI-Powered Security Fixes",
         type: "image/png",
       }
     ],
@@ -100,7 +103,7 @@ export const metadata = createMetadata({
     creator: "@_fluantix",
     title: "Tharos - AI-Powered Security Analysis",
     description: "Catch vulnerabilities before they reach production. Deep AST analysis + AI semantic insights.",
-    images: ["/twitter-card.png"],
+    images: ["/release_bundle/social_media/twitter_banner.png"],
   },
 
   // Additional metadata
@@ -189,7 +192,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msvalidate.01" content="4BB8182AAAC464C950E2F99FE3546368" />
-        
+
         {/* Favicons and app icons */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
 
@@ -206,12 +209,45 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               "name": "Tharos",
               "operatingSystem": "Cross-platform",
               "applicationCategory": "DeveloperTool",
-              "description": "AI-powered static analysis security tool.",
+              "description": "Tharos is an AI-powered security scanner that automatically fixes vulnerabilities. Combining fast AST scanning with Gemini 2.5 Flash for verified remediation.",
+              "releaseNotes": "https://tharos.vercel.app/docs/changelog",
+              "softwareVersion": "1.3.0",
               "offers": {
                 "@type": "Offer",
                 "price": "0",
                 "priceCurrency": "USD"
+              },
+              "author": {
+                "@type": "Organization",
+                "name": "Tharos Security"
               }
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": [
+                {
+                  "@type": "Question",
+                  "name": "What is Tharos AI Magic Fix?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "AI Magic Fix is a revolutionary feature in Tharos v1.3.0 that automatically applies patches to detected security vulnerabilities using context-aware AI (Gemini 2.5 Flash)."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "How accurate are the security fixes?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Tharos v1.3.0 offers 100% verified accuracy on common vulnerabilities like CORS misconfigurations, hardcoded secrets, and SQL injection patterns."
+                  }
+                }
+              ]
             }),
           }}
         />

@@ -29,6 +29,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    {
+      url: url('/playground'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
     ...items.filter((v) => v !== undefined),
   ]
 }
