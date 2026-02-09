@@ -43,7 +43,11 @@ func runAnalyze(cmd *cobra.Command, args []string) {
 
 	totalVulns := 0
 	for _, r := range results {
-		totalVulns += len(r.Findings)
+		for _, f := range r.Findings {
+			if f.Severity != "info" || verbose {
+				totalVulns++
+			}
+		}
 	}
 
 	output := BatchResult{

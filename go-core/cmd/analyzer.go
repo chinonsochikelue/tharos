@@ -290,6 +290,12 @@ func printRichOutput(result BatchResult, verboseMode bool, fixModeEnabled bool) 
 
 	for _, r := range result.Results {
 		for _, f := range r.Findings {
+			// PRO-GRADE: Filter out 'info' findings in standard output to reduce noise
+			// User can see them with --verbose
+			if f.Severity == "info" && !verboseMode {
+				continue
+			}
+
 			sevSymbol := getSeveritySymbol(f.Severity)
 			sevColor := getSeverityColorLipgloss(f.Severity)
 
@@ -1122,7 +1128,8 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, 
 						// Safe-list: Common public keys and non-secrets
 						if strings.Contains(cleanVal, "ayqp5JY") || // Google Verification
 							strings.HasPrefix(cleanVal, "google-site-verification") ||
-							strings.Contains(cleanVal, "vercel.app") {
+							strings.Contains(cleanVal, "vercel.app") ||
+							(strings.HasPrefix(cleanVal, "http") && !strings.Contains(cleanVal, "@")) {
 							return nil
 						}
 
@@ -1216,11 +1223,17 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, 
 		// Rule: Advanced SQL Injection
 		func(tt js.TokenType, text string, pt js.TokenType, pText string, ppt js.TokenType, ppText string, line int, offset int, filePath string) *Finding {
 			if tt == js.StringToken || tt == js.TemplateToken || tt == js.TemplateStartToken || tt == js.TemplateMiddleToken || tt == js.TemplateEndToken {
-				upperText := strings.ToUpper(text)
-				// Look for SQL keywords
-				isSQL := strings.Contains(upperText, "SELECT") || strings.Contains(upperText, "INSERT") ||
-					strings.Contains(upperText, "UPDATE") || strings.Contains(upperText, "DELETE") ||
-					strings.Contains(upperText, "FROM") || strings.Contains(upperText, "WHERE")
+				// Use regex to look for SQL keywords as WHOLE WORDS to avoid matching "updated", "fromage", etc.
+				hasSelect := regexp.MustCompile(`(?i)\bSELECT\b`).MatchString(text)
+				hasInsert := regexp.MustCompile(`(?i)\bINSERT\b`).MatchString(text)
+				hasUpdate := regexp.MustCompile(`(?i)\bUPDATE\b`).MatchString(text)
+				hasDelete := regexp.MustCompile(`(?i)\bDELETE\b`).MatchString(text)
+				hasFrom := regexp.MustCompile(`(?i)\bFROM\b`).MatchString(text)
+				hasWhere := regexp.MustCompile(`(?i)\bWHERE\b`).MatchString(text)
+				hasInto := regexp.MustCompile(`(?i)\bINTO\b`).MatchString(text)
+				hasSet := regexp.MustCompile(`(?i)\bSET\b`).MatchString(text)
+
+				isSQL := (hasSelect && hasFrom) || (hasInsert && hasInto) || (hasUpdate && hasSet) || (hasDelete && hasFrom) || (hasSelect && hasWhere)
 
 				if isSQL {
 					// Check for dangerous interpolation
@@ -1396,7 +1409,7 @@ func analyzeAST(content []byte, result *AnalysisResult, defaultSeverity string, 
 					Message:  fmt.Sprintf("Lexer Remark: Non-critical character encountered (%v)", lexer.Err()),
 					Severity: "info",
 					Explain:  "The lexer encountered a character it wasn't expecting, often decorative icons or complex regex. This is ignored for security purposes.",
-					Line:     1,
+					Line:     currentLine,
 				})
 			}
 			break

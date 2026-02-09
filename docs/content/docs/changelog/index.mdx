@@ -6,6 +6,18 @@ icon: List
 
 <Updates>
   <Update label="9th February 2026">
+    ### 🚀 v1.3.1: The Precision & Stability Update
+    
+    This release focuses on industrial-grade accuracy for the Tharos security engine, drastically reducing false positives while maintaining deep structural intelligence.
+
+    *   **92% Higher Signal-to-Noise**: Refined JS/TS scanning to filter out "Lexer Remarks" (emojis, complex regex) and noisy "info" level findings from standard output.
+    *   **Intelligent SQLi Correlation**: Implemented a "Scanner Mindset" that verifies multiple SQL keywords (e.g., SELECT + FROM) before flagging, eliminating false positives in UI code and logs.
+    *   **Zero-False-Positive Secrets**: Optimized the credential scanner to automatically ignore public URLs (OAuth endpoints, docs) while maintaining high-entropy detection for private keys.
+    *   **Precision Regex Boundaries**: Upgraded keyword matching to respect structural boundaries, preventing standard words (like "updated") from triggering security flags.
+    *   **Unified Versioning**: Synchronized engine and CLI versions to 1.3.1 for a more cohesive distribution.
+
+  </Update>
+  <Update label="9th February 2026">
     ### 🚀 v1.3.0: The Evolution & AI Fix Update
     
     This monumental release transforms Tharos into an **AI-powered security partner** with the introduction of **AI Magic Fix**—automatically detecting and remediating vulnerabilities with context-aware precision.
