@@ -179,6 +179,7 @@ export default function Layout({ children }: LayoutProps<'/'>) {
     >
       <head>
         {/* Google Tag Manager */}
+        <script defer src="https://cloud.umami.is/script.js" data-website-id="f082f943-4161-4838-af34-30ffbf49df77"></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
